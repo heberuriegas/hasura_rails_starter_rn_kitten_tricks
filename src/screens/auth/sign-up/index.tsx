@@ -5,6 +5,8 @@ import { ImageOverlay } from './extra/image-overlay.component';
 import { ProfileAvatar } from './extra/profile-avatar.component';
 import { EmailIcon, FacebookIcon, GoogleIcon, PersonIcon, PlusIcon, TwitterIcon } from './extra/icons';
 import { KeyboardAvoidingView } from './extra/3rd-party';
+import { GithubIcon } from '../../../kitten-tricks/components/icons';
+import { authorize } from 'react-native-app-auth';
 
 const SignUpScreen = ({ navigation }): React.ReactElement => {
   const [userName, setUserName] = React.useState<string>();
@@ -45,6 +47,52 @@ const SignUpScreen = ({ navigation }): React.ReactElement => {
     ),
     [],
   );
+
+  const backendSignIn = async () => {
+    console.log('Doorkeeper sign in!');
+    const doorkeeperSignIn = {
+      redirectUrl: 'com.disciplind.auth://oauthredirect',
+      clientId: 'v2VF-yh63gh3Dw-38H1IwWdrrqVXmJHXVrxAjcG-O_k',
+      clientSecret: 'kTVZ0ejjweTjYxWoDfZbDzKYxVDi-7WqZwb-QNLF2Ws',
+      grantTypes: ['password'],
+      dangerouslyAllowInsecureHttpRequests: __DEV__,
+      additionalHeaders: { Accept: 'application/json', grant_type: 'password' },
+      scopes: [],
+      usePkce: true,
+      additionalParameters: { foo: 'bar' },
+      serviceConfiguration: {
+        authorizationEndpoint: 'http://192.168.0.200:3000/oauth/authorize',
+        tokenEndpoint: 'http://192.168.0.200:3000/oauth/token',
+        revocationEndpoint: 'http://192.168.0.200:3000/oauth/revoke',
+      },
+    };
+    // Log in to get an authentication token
+    const authState = await authorize(doorkeeperSignIn);
+
+    console.log({ authState });
+  };
+
+  const githubSignIn = async () => {
+    console.log('Github sign in!');
+    const githubConfig = {
+      redirectUrl: 'com.disciplind.auth://oauthredirect',
+      clientId: '6160786382f2f5221c40',
+      clientSecret: '35df07973ff9e7c602e985bc930771612209f411',
+      scopes: ['identity', 'user', 'user:email'],
+      additionalHeaders: { Accept: 'application/json' },
+      usePkce: true,
+      serviceConfiguration: {
+        authorizationEndpoint: 'https://github.com/login/oauth/authorize',
+        tokenEndpoint: 'https://github.com/login/oauth/access_token',
+        revocationEndpoint: 'https://github.com/settings/connections/applications/6160786382f2f5221c40',
+      },
+    };
+
+    // Log in to get an authentication token
+    const authState = await authorize(githubConfig);
+
+    console.log({ authState });
+  };
 
   return (
     <KeyboardAvoidingView>
@@ -101,9 +149,9 @@ const SignUpScreen = ({ navigation }): React.ReactElement => {
             Or Register Using Social Media
           </Text>
           <View style={styles.socialAuthButtonsContainer}>
-            <Button appearance="ghost" size="giant" status="control" accessoryLeft={FacebookIcon} />
-            <Button appearance="ghost" size="giant" status="control" accessoryLeft={GoogleIcon} />
-            <Button appearance="ghost" size="giant" status="control" accessoryLeft={TwitterIcon} />
+            <Button size="giant" status="control" accessoryLeft={GithubIcon} onPress={backendSignIn}>
+              Sign up with Github
+            </Button>
           </View>
         </View>
         <Button style={styles.signInButton} appearance="ghost" status="control" onPress={onSignInButtonPress}>

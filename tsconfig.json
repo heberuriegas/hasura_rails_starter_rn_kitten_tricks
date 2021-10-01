@@ -6,13 +6,22 @@
     "moduleResolution": "node",
     "jsx": "react",
     "experimentalDecorators": true,
-    "lib": ["es6", "dom"],
+    "lib": [
+      "es6",
+      "dom"
+    ],
     "sourceMap": true,
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "skipLibCheck": true,
-    "typeRoots": ["./node_modules/@types"]
+    "typeRoots": [
+      "./node_modules/@types"
+    ]
   },
-  "exclude": ["./node_modules", "./babel.config.js", "./metro.config.js"]
+  "exclude": [
+    "./node_modules",
+    "./babel.config.js",
+    "./metro.config.js"
+  ]
 }

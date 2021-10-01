@@ -1,11 +1,11 @@
-package com.akveo.kittenTricks.packages.splash;
+package com.disciplind.app.packages.splash;
 
 import android.app.Activity;
 import android.view.animation.Animation;
 import androidx.annotation.Nullable;
 
-import com.akveo.kittenTricks.packages.splash.animations.SplashAnimation;
-import com.akveo.kittenTricks.packages.splash.animations.SplashAnimator;
+import com.disciplind.app.packages.splash.animations.SplashAnimation;
+import com.disciplind.app.packages.splash.animations.SplashAnimator;
 
 import java.lang.ref.WeakReference;
 

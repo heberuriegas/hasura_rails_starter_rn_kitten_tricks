@@ -1,4 +1,4 @@
-package com.akveo.kittenTricks.packages.splash;
+package com.disciplind.app.packages.splash;
 
 import com.facebook.react.ReactPackage;
 import com.facebook.react.bridge.NativeModule;
