@@ -49,17 +49,14 @@ const SignUpScreen = ({ navigation }): React.ReactElement => {
   );
 
   const backendSignIn = async () => {
-    console.log('Doorkeeper sign in!');
     const doorkeeperSignIn = {
       redirectUrl: 'com.disciplind.auth://oauthredirect',
       clientId: 'v2VF-yh63gh3Dw-38H1IwWdrrqVXmJHXVrxAjcG-O_k',
       clientSecret: 'kTVZ0ejjweTjYxWoDfZbDzKYxVDi-7WqZwb-QNLF2Ws',
-      grantTypes: ['password'],
       dangerouslyAllowInsecureHttpRequests: __DEV__,
-      additionalHeaders: { Accept: 'application/json', grant_type: 'password' },
+      additionalHeaders: { Accept: 'application/json' },
       scopes: [],
       usePkce: true,
-      additionalParameters: { foo: 'bar' },
       serviceConfiguration: {
         authorizationEndpoint: 'http://192.168.0.200:3000/oauth/authorize',
         tokenEndpoint: 'http://192.168.0.200:3000/oauth/token',
@@ -68,12 +65,10 @@ const SignUpScreen = ({ navigation }): React.ReactElement => {
     };
     // Log in to get an authentication token
     const authState = await authorize(doorkeeperSignIn);
-
     console.log({ authState });
   };
 
   const githubSignIn = async () => {
-    console.log('Github sign in!');
     const githubConfig = {
       redirectUrl: 'com.disciplind.auth://oauthredirect',
       clientId: '6160786382f2f5221c40',
@@ -90,8 +85,6 @@ const SignUpScreen = ({ navigation }): React.ReactElement => {
 
     // Log in to get an authentication token
     const authState = await authorize(githubConfig);
-
-    console.log({ authState });
   };
 
   return (
