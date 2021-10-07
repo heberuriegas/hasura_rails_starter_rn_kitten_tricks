@@ -65,7 +65,7 @@ const SignUpScreen = ({ navigation }): React.ReactElement => {
     };
     // Log in to get an authentication token
     const authState = await authorize(doorkeeperSignIn);
-    console.log({ authState });
+    // console.log({ authState });
   };
 
   const githubSignIn = async () => {
