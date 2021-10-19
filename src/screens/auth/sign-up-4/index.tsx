@@ -67,7 +67,6 @@ const SignUpScreen = ({ navigation }): React.ReactElement => {
     };
     // Log in to get an authentication token
     const authState = await authorize(doorkeeperSignIn);
-    console.log({ authState });
   };
 
   const githubSignIn = async () => {
@@ -92,8 +91,6 @@ const SignUpScreen = ({ navigation }): React.ReactElement => {
       provider: 'github',
       assertion: authState.accessToken,
     });
-
-    console.log({ result });
   };
 
   return (
