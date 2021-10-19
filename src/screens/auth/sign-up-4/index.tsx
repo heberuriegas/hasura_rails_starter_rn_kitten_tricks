@@ -3,17 +3,19 @@ import { View, TouchableWithoutFeedback } from 'react-native';
 import { Button, CheckBox, Input, StyleService, Text, useStyleSheet, Icon } from '@ui-kitten/components';
 import { ImageOverlay } from './extra/image-overlay.component';
 import { ProfileAvatar } from './extra/profile-avatar.component';
-import { EmailIcon, FacebookIcon, GoogleIcon, PersonIcon, PlusIcon, TwitterIcon } from './extra/icons';
+import { EmailIcon, FacebookIcon, GoogleIcon, GithubIcon, PersonIcon, PlusIcon, TwitterIcon } from './extra/icons';
 import { KeyboardAvoidingView } from './extra/3rd-party';
-import { GithubIcon } from '../../../kitten-tricks/components/icons';
 import { authorize } from 'react-native-app-auth';
+import { useAuth } from '../../../hooks/use-auth';
 
 const SignUpScreen = ({ navigation }): React.ReactElement => {
-  const [userName, setUserName] = React.useState<string>();
+  const [username, setUsername] = React.useState<string>();
   const [email, setEmail] = React.useState<string>();
   const [password, setPassword] = React.useState<string>();
   const [termsAccepted, setTermsAccepted] = React.useState<boolean>(false);
   const [passwordVisible, setPasswordVisible] = React.useState<boolean>(false);
+
+  const { signInByAssertion, signInByEmail } = useAuth();
 
   const styles = useStyleSheet(themedStyles);
 
@@ -51,8 +53,8 @@ const SignUpScreen = ({ navigation }): React.ReactElement => {
   const backendSignIn = async () => {
     const doorkeeperSignIn = {
       redirectUrl: 'com.disciplind.auth://oauthredirect',
-      clientId: 'v2VF-yh63gh3Dw-38H1IwWdrrqVXmJHXVrxAjcG-O_k',
-      clientSecret: 'kTVZ0ejjweTjYxWoDfZbDzKYxVDi-7WqZwb-QNLF2Ws',
+      clientId: 's_s6nFb7cKgISyPY6WPogb7T85ca4OqwJ7tsq7JUuvo',
+      clientSecret: 's2d0gTNPl5ZRHL-O-UllAvap00BD_Jvm9K5A8dpWG_U',
       dangerouslyAllowInsecureHttpRequests: __DEV__,
       additionalHeaders: { Accept: 'application/json' },
       scopes: [],
@@ -65,7 +67,7 @@ const SignUpScreen = ({ navigation }): React.ReactElement => {
     };
     // Log in to get an authentication token
     const authState = await authorize(doorkeeperSignIn);
-    // console.log({ authState });
+    console.log({ authState });
   };
 
   const githubSignIn = async () => {
@@ -85,6 +87,13 @@ const SignUpScreen = ({ navigation }): React.ReactElement => {
 
     // Log in to get an authentication token
     const authState = await authorize(githubConfig);
+
+    const result = await signInByAssertion({
+      provider: 'github',
+      assertion: authState.accessToken,
+    });
+
+    console.log({ result });
   };
 
   return (
@@ -104,8 +113,8 @@ const SignUpScreen = ({ navigation }): React.ReactElement => {
             autoCapitalize="none"
             placeholder="User Name"
             accessoryRight={PersonIcon}
-            value={userName}
-            onChangeText={setUserName}
+            value={username}
+            onChangeText={setUsername}
           />
           <Input
             style={styles.formInput}
@@ -134,7 +143,7 @@ const SignUpScreen = ({ navigation }): React.ReactElement => {
             {renderCheckboxLabel}
           </CheckBox>
         </View>
-        <Button style={styles.signUpButton} size="giant" onPress={onSignUpButtonPress}>
+        <Button style={styles.signUpButton} size="giant" onPress={backendSignIn}>
           SIGN UP
         </Button>
         <View style={styles.socialAuthContainer}>
@@ -142,7 +151,7 @@ const SignUpScreen = ({ navigation }): React.ReactElement => {
             Or Register Using Social Media
           </Text>
           <View style={styles.socialAuthButtonsContainer}>
-            <Button size="giant" status="control" accessoryLeft={GithubIcon} onPress={backendSignIn}>
+            <Button size="giant" status="control" accessoryLeft={GithubIcon} onPress={githubSignIn}>
               Sign up with Github
             </Button>
           </View>

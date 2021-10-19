@@ -10,6 +10,9 @@ import { SplashImage } from '../components/splash-image.component';
 import { AppNavigator } from '../navigation/app.navigator';
 import { AppStorage } from '../services/app-storage.service';
 import { Mapping, Theme, Theming } from '../services/theme.service';
+import { AuthProvider } from '../context/auth/auth.context';
+import { ApolloProvider, ApolloClient, NormalizedCacheObject } from '@apollo/client';
+import { getApolloClient } from '../clients/apollo';
 
 const loadingTasks: Task[] = [
   () =>
@@ -19,6 +22,7 @@ const loadingTasks: Task[] = [
     }),
   () => AppStorage.getMapping(defaultConfig.mapping).then(result => ['mapping', result]),
   () => AppStorage.getTheme(defaultConfig.theme).then(result => ['theme', result]),
+  () => getApolloClient().then(result => ['apolloClient', result]),
 ];
 
 const defaultConfig: { mapping: Mapping; theme: Theme } = {
@@ -26,7 +30,11 @@ const defaultConfig: { mapping: Mapping; theme: Theme } = {
   theme: 'light',
 };
 
-const App: React.FC<{ mapping: Mapping; theme: Theme }> = ({ mapping, theme }) => {
+const App: React.FC<{ mapping: Mapping; theme: Theme; apolloClient: ApolloClient<NormalizedCacheObject> }> = ({
+  mapping,
+  theme,
+  apolloClient,
+}) => {
   const [mappingContext, currentMapping] = Theming.useMapping(appMappings, mapping);
   const [themeContext, currentTheme] = Theming.useTheming(appThemes, mapping, theme);
 
@@ -37,10 +45,14 @@ const App: React.FC<{ mapping: Mapping; theme: Theme }> = ({ mapping, theme }) =
         <ApplicationProvider {...currentMapping} theme={currentTheme}>
           <Theming.MappingContext.Provider value={mappingContext}>
             <Theming.ThemeContext.Provider value={themeContext}>
-              <SafeAreaProvider>
-                <StatusBar />
-                <AppNavigator />
-              </SafeAreaProvider>
+              <ApolloProvider client={apolloClient}>
+                <SafeAreaProvider>
+                  <AuthProvider>
+                    <StatusBar />
+                    <AppNavigator />
+                  </AuthProvider>
+                </SafeAreaProvider>
+              </ApolloProvider>
             </Theming.ThemeContext.Provider>
           </Theming.MappingContext.Provider>
         </ApplicationProvider>

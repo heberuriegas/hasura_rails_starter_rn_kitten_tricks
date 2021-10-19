@@ -1,7 +1,9 @@
 import React from 'react';
 import { DefaultTheme, NavigationContainer } from '@react-navigation/native';
-import { HomeNavigator } from './home.navigator';
 import AuthNavigator from 'src/navigation/auth.navigator';
+import { useAuth } from '../hooks/use-auth';
+import { View } from 'react-native';
+import { Text } from '@ui-kitten/components';
 
 /*
  * Navigation theming: https://reactnavigation.org/docs/en/next/themes.html
@@ -15,9 +17,18 @@ const navigatorTheme = {
   },
 };
 
-export const AppNavigator = (): React.ReactElement => (
-  <NavigationContainer theme={navigatorTheme}>
-    <AuthNavigator />
-    {/* <HomeNavigator /> */}
-  </NavigationContainer>
-);
+const Welcome = () => {
+  const { currentUser } = useAuth();
+  return (
+    <View>
+      <Text>Welcome {currentUser.username}!</Text>
+    </View>
+  );
+};
+
+export const AppNavigator = (): React.ReactElement => {
+  const { isSignedIn } = useAuth();
+  return (
+    <NavigationContainer theme={navigatorTheme}>{isSignedIn ? <Welcome /> : <AuthNavigator />}</NavigationContainer>
+  );
+};
