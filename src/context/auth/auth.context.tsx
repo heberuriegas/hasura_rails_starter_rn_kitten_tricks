@@ -36,18 +36,20 @@ interface SignInByAssertionParams {
 
 type SignInByAssertion = (params: SignInByAssertionParams) => Promise<boolean>;
 
+type SignOut = () => Promise<boolean>;
+
 interface AuthContextData {
   currentUser: User;
   setCurrentUser: (User) => void;
   isSignedIn: boolean;
-  loading: boolean;
+  isLoading: boolean;
   userLoading: boolean;
   register(User): Promise<void>;
   signInByEmail: SignInByEmail;
   signInByPhoneNumber: SignInByPhoneNumber;
   signInByAssertion: SignInByAssertion;
   update(User): Promise<void>;
-  logout(): Promise<void>;
+  signOut: SignOut;
   sendOtp(phoneNumber: String, via: String, validationHash?: String): Promise<void>;
 }
 
@@ -56,7 +58,8 @@ const AuthContext = createContext<AuthContextData>({} as AuthContextData);
 export const AuthProvider: React.FC = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User>();
   const [isSignedIn, setIsSignedIn] = useState<boolean>();
-  const [loading, setLoading] = useState(true);
+  const [setupIsLoading, setSetupIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const listener = EventRegister.addEventListener('unauthenticate', () => {
@@ -90,6 +93,7 @@ export const AuthProvider: React.FC = ({ children }) => {
   useEffect(() => {
     if (me) {
       setCurrentUser(me);
+      setSetupIsLoading(false);
     }
   }, [me]);
 
@@ -112,6 +116,7 @@ export const AuthProvider: React.FC = ({ children }) => {
 
   const signInByEmail: SignInByEmail = async ({ email, password, passwordConfirmation }) => {
     try {
+      setIsLoading(true);
       const loginData = await authAxios.post<OAuthCredentials>('/oauth/token', {
         grantType: 'password',
         clientId: AUTH_CLIENT_ID,
@@ -122,15 +127,18 @@ export const AuthProvider: React.FC = ({ children }) => {
 
       await AsyncStorage.setItem('credentials', JSON.stringify(loginData.data));
       await getCurrentUser();
-
+      setIsLoading(false);
       return true;
     } catch (err) {
+      console.error(err);
+      setIsLoading(false);
       return false;
     }
   };
 
   const signInByPhoneNumber: SignInByPhoneNumber = async ({ phoneNumber, otpCode }) => {
     try {
+      setIsLoading(true);
       const loginData = await authAxios.post<OAuthCredentials>('/oauth/token', {
         grantType: 'password',
         clientId: AUTH_CLIENT_ID,
@@ -140,15 +148,18 @@ export const AuthProvider: React.FC = ({ children }) => {
 
       await AsyncStorage.setItem('credentials', JSON.stringify(loginData.data));
       await getCurrentUser();
-
+      setIsLoading(false);
       return true;
     } catch (err) {
+      console.error(err);
+      setIsLoading(false);
       return false;
     }
   };
 
   const signInByAssertion: SignInByAssertion = async ({ provider, assertion }) => {
     try {
+      setIsLoading(true);
       const loginData = await authAxios.post<OAuthCredentials>('/oauth/token', {
         grantType: 'assertion',
         clientId: AUTH_CLIENT_ID,
@@ -159,23 +170,33 @@ export const AuthProvider: React.FC = ({ children }) => {
       await AsyncStorage.setItem('credentials', JSON.stringify(loginData.data));
       await getCurrentUser();
 
+      setIsLoading(false);
       return true;
     } catch (err) {
+      console.error(err);
+
+      setIsLoading(false);
       return false;
     }
   };
 
   // Remove data from context, so the App can be notified and send the user to the AuthStack
-  const logout = async () => {
+  const signOut: SignOut = async () => {
     try {
+      setIsLoading(true);
       const token = JSON.parse(await AsyncStorage.getItem('credentials'));
+      await AsyncStorage.removeItem('credentials');
+      setCurrentUser(null);
       await authAxios.post('/oauth/revoke', {
         clientId: AUTH_CLIENT_ID,
         token,
       });
-    } finally {
-      await AsyncStorage.setItem('credentials', null);
-      setCurrentUser(null);
+      setIsLoading(false);
+      return true;
+    } catch (err) {
+      console.error(err);
+      setIsLoading(false);
+      return false;
     }
   };
 
@@ -201,14 +222,14 @@ export const AuthProvider: React.FC = ({ children }) => {
         isSignedIn,
         currentUser,
         setCurrentUser,
-        userLoading,
-        loading,
+        userLoading: setupIsLoading || userLoading,
+        isLoading,
         register,
         sendOtp,
         signInByEmail,
         signInByPhoneNumber,
         signInByAssertion,
-        logout,
+        signOut,
         update,
       }}
     >

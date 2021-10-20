@@ -4,7 +4,7 @@ export interface OAuthCredentials {
   expiresIn: number;
   refreshToken: string;
   scope: string;
-  createdAt: Date;
+  createdAt: number;
 }
 
 export interface OAuthState {

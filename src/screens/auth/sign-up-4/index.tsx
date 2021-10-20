@@ -1,6 +1,6 @@
 import React, { ReactElement } from 'react';
 import { View, TouchableWithoutFeedback } from 'react-native';
-import { Button, CheckBox, Input, StyleService, Text, useStyleSheet, Icon } from '@ui-kitten/components';
+import { Button, CheckBox, Input, StyleService, Text, useStyleSheet, Icon, Spinner } from '@ui-kitten/components';
 import { ImageOverlay } from './extra/image-overlay.component';
 import { ProfileAvatar } from './extra/profile-avatar.component';
 import { EmailIcon, FacebookIcon, GoogleIcon, GithubIcon, PersonIcon, PlusIcon, TwitterIcon } from './extra/icons';
@@ -15,7 +15,7 @@ const SignUpScreen = ({ navigation }): React.ReactElement => {
   const [termsAccepted, setTermsAccepted] = React.useState<boolean>(false);
   const [passwordVisible, setPasswordVisible] = React.useState<boolean>(false);
 
-  const { signInByAssertion, signInByEmail } = useAuth();
+  const { signInByAssertion, signInByEmail, isLoading } = useAuth();
 
   const styles = useStyleSheet(themedStyles);
 
@@ -148,7 +148,13 @@ const SignUpScreen = ({ navigation }): React.ReactElement => {
             Or Register Using Social Media
           </Text>
           <View style={styles.socialAuthButtonsContainer}>
-            <Button size="giant" status="control" accessoryLeft={GithubIcon} onPress={githubSignIn}>
+            <Button
+              disabled={isLoading}
+              size="giant"
+              status="control"
+              accessoryLeft={isLoading ? () => <Spinner /> : GithubIcon}
+              onPress={githubSignIn}
+            >
               Sign up with Github
             </Button>
           </View>
