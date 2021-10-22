@@ -7,17 +7,63 @@ import { EmailIcon, FacebookIcon, GoogleIcon, GithubIcon, PersonIcon, PlusIcon, 
 import { KeyboardAvoidingView } from './extra/3rd-party';
 import { authorize } from 'react-native-app-auth';
 import { useAuth } from '../../../hooks/use-auth';
+import { useFormik } from 'formik';
+import { useToast } from 'react-native-toast-notifications';
+import * as Yup from 'yup';
+import YupPassword from 'yup-password';
+import { UserRegistrationByEmail } from '../../../context/auth/auth.context.types';
+YupPassword(Yup);
 
 const SignUpScreen = ({ navigation }): React.ReactElement => {
-  const [username, setUsername] = React.useState<string>();
-  const [email, setEmail] = React.useState<string>();
-  const [password, setPassword] = React.useState<string>();
-  const [termsAccepted, setTermsAccepted] = React.useState<boolean>(false);
   const [passwordVisible, setPasswordVisible] = React.useState<boolean>(false);
+  const toast = useToast();
 
-  const { signInByAssertion, signInByEmail, isLoading } = useAuth();
+  const { signInByAssertion, signInByEmail, signUpByEmail, isLoading } = useAuth();
 
   const styles = useStyleSheet(themedStyles);
+
+  const validationSchema = Yup.object({
+    username: Yup.string()
+      .min(3, 'Must have at least 3 characters')
+      .max(15, 'Must be 15 characters or less')
+      .required('Required'),
+    name: Yup.string()
+      .min(3, 'Must have at least 3 characters')
+      .max(15, 'Must be 15 characters or less')
+      .required('Required'),
+    email: Yup.string().email('Invalid email address').required('Required'),
+    password: Yup.string().password(),
+    passwordConfirmation: Yup.string().oneOf([Yup.ref('password'), null], 'Passwords must match'),
+    // termsAccepted: Yup.bool().oneOf([true], 'Field must be checked'),
+  });
+
+  const { values, touched, errors, submitForm, handleChange, handleBlur } = useFormik<UserRegistrationByEmail>({
+    initialValues: {
+      username: '',
+      email: '',
+      name: '',
+      password: '',
+      passwordConfirmation: '',
+      // termsAccepted: false,
+    },
+    validationSchema,
+    onSubmit: async (_values, { setErrors }) => {
+      try {
+        await signUpByEmail(_values);
+        navigation && navigation.navigate('SignIn4');
+      } catch (err) {
+        const dataErrors = err?.response?.data?.errors;
+        if (dataErrors) {
+          setErrors(dataErrors);
+        } else {
+          console.error(err);
+          toast.show('User cannot be created', {
+            type: 'danger',
+          });
+        }
+      }
+    },
+  });
 
   const onSignUpButtonPress = (): void => {
     navigation && navigation.goBack();
@@ -96,32 +142,55 @@ const SignUpScreen = ({ navigation }): React.ReactElement => {
   return (
     <KeyboardAvoidingView>
       <ImageOverlay style={styles.container} source={require('./assets/image-background.jpg')}>
-        <View style={styles.headerContainer}>
+        {/* <View style={styles.headerContainer}>
           <ProfileAvatar
             style={styles.profileAvatar}
             resizeMode="center"
             source={require('./assets/image-person.png')}
             editButton={renderPhotoButton}
           />
+        </View> */}
+        <View style={styles.headerContainer}>
+          <Text category="h1" status="control">
+            Hello
+          </Text>
+          <Text category="s1" status="control">
+            Sign up to your account
+          </Text>
         </View>
         <View style={styles.formContainer}>
           <Input
             status="control"
             autoCapitalize="none"
+            placeholder="Name"
+            accessoryRight={PersonIcon}
+            onChangeText={handleChange('name')}
+            onBlur={handleBlur('name')}
+            value={values.name}
+          />
+          {touched.name && errors.name ? <Text status="danger">{errors.name as string}</Text> : null}
+          <Input
+            style={styles.formInput}
+            status="control"
+            autoCapitalize="none"
             placeholder="User Name"
             accessoryRight={PersonIcon}
-            value={username}
-            onChangeText={setUsername}
+            onChangeText={handleChange('username')}
+            onBlur={handleBlur('username')}
+            value={values.username}
           />
+          {touched.username && errors.username ? <Text status="danger">{errors.username as string}</Text> : null}
           <Input
             style={styles.formInput}
             status="control"
             autoCapitalize="none"
             placeholder="Email"
             accessoryRight={EmailIcon}
-            value={email}
-            onChangeText={setEmail}
+            onChangeText={handleChange('email')}
+            onBlur={handleBlur('email')}
+            value={values.email}
           />
+          {touched.email && errors.email ? <Text status="danger">{errors.email as string}</Text> : null}
           <Input
             style={styles.formInput}
             status="control"
@@ -129,18 +198,46 @@ const SignUpScreen = ({ navigation }): React.ReactElement => {
             secureTextEntry={!passwordVisible}
             placeholder="Password"
             accessoryRight={renderPasswordIcon}
-            value={password}
-            onChangeText={setPassword}
+            onChangeText={handleChange('password')}
+            onBlur={handleBlur('password')}
+            value={values.password}
           />
-          <CheckBox
+          {touched.password && errors.password ? <Text status="danger">{errors.password as string}</Text> : null}
+          <Input
+            style={styles.formInput}
+            status="control"
+            autoCapitalize="none"
+            secureTextEntry={!passwordVisible}
+            placeholder="Password confirmation"
+            accessoryRight={renderPasswordIcon}
+            onChangeText={handleChange('passwordConfirmation')}
+            onBlur={handleBlur('passwordConfirmation')}
+            value={values.passwordConfirmation}
+          />
+          {touched.passwordConfirmation && errors.passwordConfirmation ? (
+            <Text status="danger">{errors.passwordConfirmation as string}</Text>
+          ) : null}
+          {/* <CheckBox
             style={styles.termsCheckBox}
-            checked={termsAccepted}
-            onChange={(checked: boolean) => setTermsAccepted(checked)}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            checked={values.termsAccepted}
           >
             {renderCheckboxLabel}
           </CheckBox>
+          {touched.termsAccepted && errors.termsAccepted ? (
+            <Text status="danger">
+              {errors.termsAccepted}
+            </Text>
+          ) : null} */}
         </View>
-        <Button style={styles.signUpButton} size="giant" onPress={backendSignIn}>
+        <Button
+          disabled={isLoading}
+          accessoryLeft={isLoading ? () => <Spinner /> : null}
+          style={styles.signUpButton}
+          size="giant"
+          onPress={submitForm}
+        >
           SIGN UP
         </Button>
         <View style={styles.socialAuthContainer}>
@@ -176,7 +273,7 @@ const themedStyles = StyleService.create({
   headerContainer: {
     justifyContent: 'center',
     alignItems: 'center',
-    minHeight: 176,
+    minHeight: 150,
   },
   profileAvatar: {
     width: 92,

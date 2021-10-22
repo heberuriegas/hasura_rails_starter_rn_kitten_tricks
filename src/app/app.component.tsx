@@ -13,6 +13,7 @@ import { Mapping, Theme, Theming } from '../services/theme.service';
 import { AuthProvider } from '../context/auth/auth.context';
 import { ApolloProvider, ApolloClient, NormalizedCacheObject } from '@apollo/client';
 import { getApolloClient } from '../clients/apollo';
+import { ToastProvider } from 'react-native-toast-notifications';
 
 const loadingTasks: Task[] = [
   () =>
@@ -47,10 +48,12 @@ const App: React.FC<{ mapping: Mapping; theme: Theme; apolloClient: ApolloClient
             <Theming.ThemeContext.Provider value={themeContext}>
               <ApolloProvider client={apolloClient}>
                 <SafeAreaProvider>
-                  <AuthProvider>
-                    <StatusBar />
-                    <AppNavigator />
-                  </AuthProvider>
+                  <ToastProvider>
+                    <AuthProvider>
+                      <StatusBar />
+                      <AppNavigator />
+                    </AuthProvider>
+                  </ToastProvider>
                 </SafeAreaProvider>
               </ApolloProvider>
             </Theming.ThemeContext.Provider>

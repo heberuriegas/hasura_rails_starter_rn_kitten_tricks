@@ -3,55 +3,21 @@ import React, { useEffect, useState, createContext } from 'react';
 import meQuery from '../../queries/users/me.graphql';
 // import updateCurrentUserQuery from '../../queries/graphql/users/updateUser.graphql';
 import { EventRegister } from 'react-native-event-listeners';
-import { User } from '../../../types/user';
 import { AUTH_CLIENT_ID } from '@env';
 import { useLazyQuery } from '@apollo/client';
 import { authAxios } from '../../clients/axios';
+import {
+  AuthContextData,
+  RegisterData,
+  SignInByEmail,
+  SignInByPhoneNumber,
+  SignInByAssertion,
+  SignOut,
+} from './auth.context.types';
+import { User } from 'types/user';
 import { OAuthCredentials } from '../../../types/credentials';
-
-interface RegisterData {
-  user: User;
-  credentials: OAuthCredentials;
-}
-
-interface SignInByEmailParams {
-  email: string;
-  password: string;
-  passwordConfirmation: string;
-}
-
-type SignInByEmail = (params: SignInByEmailParams) => Promise<boolean>;
-
-interface SignInByPhoneNumberParams {
-  phoneNumber: string;
-  otpCode: string;
-}
-
-type SignInByPhoneNumber = (params: SignInByPhoneNumberParams) => Promise<boolean>;
-
-interface SignInByAssertionParams {
-  assertion: string;
-  provider: string;
-}
-
-type SignInByAssertion = (params: SignInByAssertionParams) => Promise<boolean>;
-
-type SignOut = () => Promise<boolean>;
-
-interface AuthContextData {
-  currentUser: User;
-  setCurrentUser: (User) => void;
-  isSignedIn: boolean;
-  isLoading: boolean;
-  userLoading: boolean;
-  register(User): Promise<void>;
-  signInByEmail: SignInByEmail;
-  signInByPhoneNumber: SignInByPhoneNumber;
-  signInByAssertion: SignInByAssertion;
-  update(User): Promise<void>;
-  signOut: SignOut;
-  sendOtp(phoneNumber: String, via: String, validationHash?: String): Promise<void>;
-}
+import { SignUpByEmail } from './auth.context.types';
+import { useToast } from 'react-native-toast-notifications';
 
 const AuthContext = createContext<AuthContextData>({} as AuthContextData);
 
@@ -60,6 +26,8 @@ export const AuthProvider: React.FC = ({ children }) => {
   const [isSignedIn, setIsSignedIn] = useState<boolean>();
   const [setupIsLoading, setSetupIsLoading] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
+
+  const toast = useToast();
 
   useEffect(() => {
     const listener = EventRegister.addEventListener('unauthenticate', () => {
@@ -83,6 +51,8 @@ export const AuthProvider: React.FC = ({ children }) => {
       AsyncStorage.getItem('credentials').then(credentials => {
         if (credentials) {
           getCurrentUser();
+        } else {
+          setSetupIsLoading(false);
         }
       });
     } catch (err) {
@@ -93,9 +63,11 @@ export const AuthProvider: React.FC = ({ children }) => {
   useEffect(() => {
     if (me) {
       setCurrentUser(me);
+    }
+    if (me || error) {
       setSetupIsLoading(false);
     }
-  }, [me]);
+  }, [me, error]);
 
   useEffect(() => {
     setIsSignedIn(Boolean(currentUser));
@@ -105,13 +77,25 @@ export const AuthProvider: React.FC = ({ children }) => {
     // await fetch();
   };
 
-  const register = async (user: User) => {
-    const registerResult = await authAxios.post<RegisterData>('/users.json', {
-      user,
-    });
+  const signUpByEmail: SignUpByEmail = async user => {
+    const signUpByEmailResult = await authAxios.post<RegisterData>(
+      '/users.json',
+      { user },
+      {
+        headers: {
+          'Client-Id': AUTH_CLIENT_ID,
+        },
+      },
+    );
 
-    await AsyncStorage.setItem('credentials', JSON.stringify(registerResult.data.credentials));
-    setCurrentUser(registerResult.data.user);
+    if (signUpByEmailResult.data.credentials) {
+      await AsyncStorage.setItem('credentials', JSON.stringify(signUpByEmailResult.data.credentials));
+      setCurrentUser(signUpByEmailResult.data.user);
+    } else {
+      toast.show(
+        'Please confirm your email address by clicking on the link in the confirmation email sent to your account.',
+      );
+    }
   };
 
   const signInByEmail: SignInByEmail = async ({ email, password, passwordConfirmation }) => {
@@ -224,7 +208,7 @@ export const AuthProvider: React.FC = ({ children }) => {
         setCurrentUser,
         userLoading: setupIsLoading || userLoading,
         isLoading,
-        register,
+        signUpByEmail,
         sendOtp,
         signInByEmail,
         signInByPhoneNumber,
