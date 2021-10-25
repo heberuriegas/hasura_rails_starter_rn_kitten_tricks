@@ -4,10 +4,10 @@ import { Button, Input, Spinner, Text } from '@ui-kitten/components';
 import { ImageOverlay } from './extra/image-overlay.component';
 import { EmailIcon } from './extra/icons';
 import { KeyboardAvoidingView } from './extra/3rd-party';
-import { useAuth } from '../../../hooks/use-auth';
+import { useAuth } from '../../../../hooks/use-auth';
 import * as Yup from 'yup';
 import { useFormik } from 'formik';
-import { UserForgotPassword } from '../../../context/auth/auth.context.types';
+import { UserForgotPassword } from '../../../../context/auth/auth.context.types';
 import { useToast } from 'react-native-toast-notifications';
 
 export default ({ navigation }): React.ReactElement => {
@@ -24,7 +24,7 @@ export default ({ navigation }): React.ReactElement => {
       email: '',
     },
     validationSchema,
-    onSubmit: async (_values, { setErrors }) => {
+    onSubmit: async (_values, { setErrors, resetForm }) => {
       setIsLoading(true);
       try {
         await forgotPassword(_values);
@@ -32,6 +32,7 @@ export default ({ navigation }): React.ReactElement => {
         toast.show("You'll receive an email with a password reset link", {
           type: 'success',
         });
+        resetForm();
         navigation && navigation.navigate('SignIn');
       } catch (err) {
         const dataErrors = err?.response?.data?.errors;
@@ -39,7 +40,7 @@ export default ({ navigation }): React.ReactElement => {
           setErrors(dataErrors);
         } else {
           console.error(err);
-          toast.show('Email does not exist', {
+          toast.show('We are sorry, something went wrong.', {
             type: 'danger',
           });
         }
@@ -71,8 +72,8 @@ export default ({ navigation }): React.ReactElement => {
             onBlur={handleBlur('email')}
             onChangeText={handleChange('email')}
           />
+          {touched.email && errors.email ? <Text status="danger">{errors.email as string}</Text> : null}
         </View>
-        {touched.email && errors.email ? <Text status="danger">{errors.email as string}</Text> : null}
         <Button
           size="giant"
           onPress={submitForm}
@@ -97,7 +98,6 @@ const styles = StyleSheet.create({
   },
   formContainer: {
     flex: 1,
-    justifyContent: 'space-between',
     marginTop: 24,
   },
   forgotPasswordLabel: {

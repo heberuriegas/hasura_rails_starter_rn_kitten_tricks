@@ -15,19 +15,20 @@ import {
 } from './extra/icons';
 import { KeyboardAvoidingView } from './extra/3rd-party';
 import { authorize } from 'react-native-app-auth';
-import { useAuth } from '../../../hooks/use-auth';
+import { useAuth } from '../../../../hooks/use-auth';
 import { useFormik } from 'formik';
 import { useToast } from 'react-native-toast-notifications';
 import * as Yup from 'yup';
 import YupPassword from 'yup-password';
 YupPassword(Yup);
-import { UserSignUpByEmail } from '../../../context/auth/auth.context.types';
+import { UserSignUpByEmail } from '../../../../context/auth/auth.context.types';
 import { LockIcon } from './extra/icons';
-import useOAuth from '../../../hooks/use-oauth';
+import useOAuth from '../../../../hooks/use-oauth';
 
 const SignUpScreen = ({ navigation }): React.ReactElement => {
   const [passwordVisible, setPasswordVisible] = React.useState<boolean>(false);
-  const [isLoading, setIsLoading] = React.useState<boolean>(false);
+  const [signUpIsLoading, setSignUpIsLoading] = React.useState<boolean>(false);
+  const [githubIsLoading, setGithubIsLoading] = React.useState<boolean>(false);
   const toast = useToast();
 
   const { signUpByEmail } = useAuth();
@@ -62,10 +63,11 @@ const SignUpScreen = ({ navigation }): React.ReactElement => {
       // termsAccepted: false,
     },
     validationSchema,
-    onSubmit: async (_values, { setErrors }) => {
-      setIsLoading(true);
+    onSubmit: async (_values, { setErrors, resetForm }) => {
+      setSignUpIsLoading(true);
       try {
         await signUpByEmail(_values);
+        resetForm();
         navigation && navigation.navigate('SignIn');
       } catch (err) {
         const dataErrors = err?.response?.data?.errors;
@@ -73,12 +75,12 @@ const SignUpScreen = ({ navigation }): React.ReactElement => {
           setErrors(dataErrors);
         } else {
           console.error(err);
-          toast.show('User cannot be created', {
-            type: 'danger',
+          toast.show('User could not be created', {
+            type: 'warning',
           });
         }
       } finally {
-        setIsLoading(false);
+        setSignUpIsLoading(false);
       }
     },
   });
@@ -109,6 +111,18 @@ const SignUpScreen = ({ navigation }): React.ReactElement => {
     ),
     [],
   );
+
+  const onGithubSignInPress = async (): Promise<void> => {
+    setGithubIsLoading(true);
+    try {
+      await githubSignIn();
+    } catch (err) {
+      console.error(err);
+      toast.show('We are sorry, something went wrong', { type: 'danger' });
+    } finally {
+      setGithubIsLoading(false);
+    }
+  };
 
   return (
     <KeyboardAvoidingView>
@@ -204,8 +218,8 @@ const SignUpScreen = ({ navigation }): React.ReactElement => {
           ) : null} */}
         </View>
         <Button
-          disabled={isLoading}
-          accessoryLeft={isLoading ? () => <Spinner /> : null}
+          disabled={signUpIsLoading || githubIsLoading}
+          accessoryLeft={signUpIsLoading ? () => <Spinner /> : null}
           style={styles.signUpButton}
           size="giant"
           onPress={submitForm}
@@ -223,11 +237,11 @@ const SignUpScreen = ({ navigation }): React.ReactElement => {
           </View> */}
           <View style={styles.socialAuthButtonsContainer}>
             <Button
-              disabled={isLoading}
+              disabled={signUpIsLoading || githubIsLoading}
               size="giant"
               status="control"
-              accessoryLeft={isLoading ? () => <Spinner /> : GithubIcon}
-              onPress={githubSignIn}
+              accessoryLeft={githubIsLoading ? () => <Spinner /> : GithubIcon}
+              onPress={onGithubSignInPress}
             >
               Sign up with Github
             </Button>

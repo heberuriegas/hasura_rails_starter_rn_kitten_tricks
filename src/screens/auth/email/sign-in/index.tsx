@@ -5,17 +5,18 @@ import { ImageOverlay } from './extra/image-overlay.component';
 import { FacebookIcon, GoogleIcon, TwitterIcon, EmailIcon, LockIcon, GithubIcon } from './extra/icons';
 import { KeyboardAvoidingView } from './extra/3rd-party';
 import { useFormik } from 'formik';
-import { UserSignInByEmail } from '../../../context/auth/auth.context.types';
-import { useAuth } from '../../../hooks/use-auth';
+import { UserSignInByEmail } from '../../../../context/auth/auth.context.types';
+import { useAuth } from '../../../../hooks/use-auth';
 import { useToast } from 'react-native-toast-notifications';
-import useOAuth from '../../../hooks/use-oauth';
+import useOAuth from '../../../../hooks/use-oauth';
 import * as Yup from 'yup';
 import YupPassword from 'yup-password';
 YupPassword(Yup);
 
 export default ({ navigation }): React.ReactElement => {
   const [passwordVisible, setPasswordVisible] = React.useState<boolean>(false);
-  const [isLoading, setIsLoading] = React.useState<boolean>(false);
+  const [signInIsLoading, setSignInIsLoading] = React.useState<boolean>(false);
+  const [githubIsLoading, setGithubIsLoading] = React.useState<boolean>(false);
   const toast = useToast();
 
   const { signInByEmail } = useAuth();
@@ -32,22 +33,23 @@ export default ({ navigation }): React.ReactElement => {
       password: '',
     },
     validationSchema,
-    onSubmit: async (_values, { setErrors }) => {
-      setIsLoading(true);
+    onSubmit: async (_values, { setErrors, resetForm }) => {
+      setSignInIsLoading(true);
       try {
         await signInByEmail(_values);
+        resetForm();
       } catch (err) {
         const dataErrors = err?.response?.data?.errors;
         if (dataErrors) {
           setErrors(dataErrors);
         } else {
           console.error(err);
-          toast.show('User cannot be created', {
-            type: 'danger',
+          toast.show('Invalid username or password', {
+            type: 'warning',
           });
         }
       } finally {
-        setIsLoading(false);
+        setSignInIsLoading(false);
       }
     },
   });
@@ -62,6 +64,18 @@ export default ({ navigation }): React.ReactElement => {
 
   const onPasswordIconPress = (): void => {
     setPasswordVisible(!passwordVisible);
+  };
+
+  const onGithubSignInPress = async (): Promise<void> => {
+    setGithubIsLoading(true);
+    try {
+      await githubSignIn();
+    } catch (err) {
+      console.error(err);
+      toast.show('We are sorry, something went wrong', { type: 'danger' });
+    } finally {
+      setGithubIsLoading(false);
+    }
   };
 
   const renderPasswordIcon = (props): ReactElement => (
@@ -118,8 +132,8 @@ export default ({ navigation }): React.ReactElement => {
           style={styles.signInButton}
           size="giant"
           onPress={submitForm}
-          disabled={isLoading}
-          accessoryLeft={isLoading ? () => <Spinner /> : null}
+          disabled={githubIsLoading || signInIsLoading}
+          accessoryLeft={signInIsLoading ? () => <Spinner /> : null}
         >
           SIGN IN
         </Button>
@@ -134,11 +148,11 @@ export default ({ navigation }): React.ReactElement => {
           </View> */}
           <View style={styles.socialAuthButtonsContainer}>
             <Button
-              disabled={isLoading}
+              disabled={signInIsLoading || githubIsLoading}
               size="giant"
               status="control"
-              accessoryLeft={isLoading ? () => <Spinner /> : GithubIcon}
-              onPress={githubSignIn}
+              accessoryLeft={githubIsLoading ? () => <Spinner /> : GithubIcon}
+              onPress={onGithubSignInPress}
             >
               Sign in with Github
             </Button>
