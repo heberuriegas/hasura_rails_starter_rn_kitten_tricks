@@ -1,27 +1,59 @@
 import React, { ReactElement } from 'react';
 import { StyleSheet, View, TouchableWithoutFeedback } from 'react-native';
-import { Button, Input, Text, Icon } from '@ui-kitten/components';
+import { Button, Input, Text, Icon, Spinner } from '@ui-kitten/components';
 import { ImageOverlay } from './extra/image-overlay.component';
-import {
-  FacebookIcon,
-  GoogleIcon,
-  PersonIcon,
-  TwitterIcon,
-} from './extra/icons';
+import { FacebookIcon, GoogleIcon, TwitterIcon, EmailIcon, LockIcon, GithubIcon } from './extra/icons';
 import { KeyboardAvoidingView } from './extra/3rd-party';
+import { useFormik } from 'formik';
+import { UserSignInByEmail } from '../../../context/auth/auth.context.types';
+import { useAuth } from '../../../hooks/use-auth';
+import { useToast } from 'react-native-toast-notifications';
+import useOAuth from '../../../hooks/use-oauth';
+import * as Yup from 'yup';
+import YupPassword from 'yup-password';
+YupPassword(Yup);
 
 export default ({ navigation }): React.ReactElement => {
-
-  const [email, setEmail] = React.useState<string>();
-  const [password, setPassword] = React.useState<string>();
   const [passwordVisible, setPasswordVisible] = React.useState<boolean>(false);
+  const [isLoading, setIsLoading] = React.useState<boolean>(false);
+  const toast = useToast();
 
-  const onSignInButtonPress = (): void => {
-    navigation && navigation.goBack();
-  };
+  const { signInByEmail } = useAuth();
+  const { githubSignIn } = useOAuth();
+
+  const validationSchema = Yup.object({
+    email: Yup.string().email('Invalid email address').required('Required'),
+    password: Yup.string().password().required('Required'),
+  });
+
+  const { values, touched, errors, submitForm, handleChange, handleBlur } = useFormik<UserSignInByEmail>({
+    initialValues: {
+      email: '',
+      password: '',
+    },
+    validationSchema,
+    onSubmit: async (_values, { setErrors }) => {
+      setIsLoading(true);
+      try {
+        await signInByEmail(_values);
+      } catch (err) {
+        const dataErrors = err?.response?.data?.errors;
+        if (dataErrors) {
+          setErrors(dataErrors);
+        } else {
+          console.error(err);
+          toast.show('User cannot be created', {
+            type: 'danger',
+          });
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    },
+  });
 
   const onSignUpButtonPress = (): void => {
-    navigation && navigation.navigate('SignUp4');
+    navigation && navigation.navigate('SignUp');
   };
 
   const onForgotPasswordButtonPress = (): void => {
@@ -40,87 +72,79 @@ export default ({ navigation }): React.ReactElement => {
 
   return (
     <KeyboardAvoidingView>
-      <ImageOverlay
-        style={styles.container}
-        source={require('./assets/image-background.jpg')}>
+      <ImageOverlay style={styles.container} source={require('./assets/image-background.jpg')}>
         <View style={styles.headerContainer}>
-          <Text
-            category='h1'
-            status='control'>
+          <Text category="h1" status="control">
             Hello
           </Text>
-          <Text
-            style={styles.signInLabel}
-            category='s1'
-            status='control'>
+          <Text style={styles.signInLabel} category="s1" status="control">
             Sign in to your account
           </Text>
         </View>
         <View style={styles.formContainer}>
           <Input
-            status='control'
-            placeholder='Email'
-            accessoryLeft={PersonIcon}
-            value={email}
-            onChangeText={setEmail}
+            status="control"
+            placeholder="Email"
+            accessoryLeft={EmailIcon}
+            value={values.email}
+            onBlur={handleBlur('email')}
+            onChangeText={handleChange('email')}
           />
+          {touched.email && errors.email ? <Text status="danger">{errors.email as string}</Text> : null}
           <Input
             style={styles.passwordInput}
-            status='control'
-            placeholder='Password'
+            status="control"
+            placeholder="Password"
+            accessoryLeft={LockIcon}
             accessoryRight={renderPasswordIcon}
-            value={password}
             secureTextEntry={!passwordVisible}
-            onChangeText={setPassword}
+            value={values.password}
+            onBlur={handleBlur('password')}
+            onChangeText={handleChange('password')}
           />
+          {touched.password && errors.password ? <Text status="danger">{errors.password as string}</Text> : null}
           <View style={styles.forgotPasswordContainer}>
             <Button
               style={styles.forgotPasswordButton}
-              appearance='ghost'
-              status='control'
-              onPress={onForgotPasswordButtonPress}>
+              appearance="ghost"
+              status="control"
+              onPress={onForgotPasswordButtonPress}
+            >
               Forgot your password?
             </Button>
           </View>
         </View>
         <Button
           style={styles.signInButton}
-          size='giant'
-          onPress={onSignInButtonPress}>
+          size="giant"
+          onPress={submitForm}
+          disabled={isLoading}
+          accessoryLeft={isLoading ? () => <Spinner /> : null}
+        >
           SIGN IN
         </Button>
         <View style={styles.socialAuthContainer}>
-          <Text
-            style={styles.socialAuthHintText}
-            status='control'>
+          <Text style={styles.socialAuthHintText} status="control">
             Or Sign In using Social Media
           </Text>
+          {/* <View style={styles.socialAuthButtonsContainer}>
+            <Button appearance="ghost" status="control" size="giant" accessoryLeft={GoogleIcon} />
+            <Button appearance="ghost" status="control" size="giant" accessoryLeft={FacebookIcon} />
+            <Button appearance="ghost" status="control" size="giant" accessoryLeft={TwitterIcon} />
+          </View> */}
           <View style={styles.socialAuthButtonsContainer}>
             <Button
-              appearance='ghost'
-              status='control'
-              size='giant'
-              accessoryLeft={GoogleIcon}
-            />
-            <Button
-              appearance='ghost'
-              status='control'
-              size='giant'
-              accessoryLeft={FacebookIcon}
-            />
-            <Button
-              appearance='ghost'
-              status='control'
-              size='giant'
-              accessoryLeft={TwitterIcon}
-            />
+              disabled={isLoading}
+              size="giant"
+              status="control"
+              accessoryLeft={isLoading ? () => <Spinner /> : GithubIcon}
+              onPress={githubSignIn}
+            >
+              Sign in with Github
+            </Button>
           </View>
         </View>
-        <Button
-          style={styles.signUpButton}
-          appearance='ghost'
-          status='control'
-          onPress={onSignUpButtonPress}>
+        <Button style={styles.signUpButton} appearance="ghost" status="control" onPress={onSignUpButtonPress}>
           Don't have an account? Sign Up
         </Button>
       </ImageOverlay>
@@ -172,4 +196,3 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
 });
-

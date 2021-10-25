@@ -8,7 +8,7 @@ import { useLazyQuery } from '@apollo/client';
 import { authAxios } from '../../clients/axios';
 import {
   AuthContextData,
-  RegisterData,
+  SignUpData,
   SignInByEmail,
   SignInByPhoneNumber,
   SignInByAssertion,
@@ -16,7 +16,7 @@ import {
 } from './auth.context.types';
 import { User } from 'types/user';
 import { OAuthCredentials } from '../../../types/credentials';
-import { SignUpByEmail } from './auth.context.types';
+import { SignUpByEmail, ForgotPassword, ForgotPasswordData } from './auth.context.types';
 import { useToast } from 'react-native-toast-notifications';
 
 const AuthContext = createContext<AuthContextData>({} as AuthContextData);
@@ -25,7 +25,6 @@ export const AuthProvider: React.FC = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User>();
   const [isSignedIn, setIsSignedIn] = useState<boolean>();
   const [setupIsLoading, setSetupIsLoading] = useState(true);
-  const [isLoading, setIsLoading] = useState(false);
 
   const toast = useToast();
 
@@ -78,7 +77,7 @@ export const AuthProvider: React.FC = ({ children }) => {
   };
 
   const signUpByEmail: SignUpByEmail = async user => {
-    const signUpByEmailResult = await authAxios.post<RegisterData>(
+    const signUpByEmailResult = await authAxios.post<SignUpData>(
       '/users.json',
       { user },
       {
@@ -98,90 +97,55 @@ export const AuthProvider: React.FC = ({ children }) => {
     }
   };
 
-  const signInByEmail: SignInByEmail = async ({ email, password, passwordConfirmation }) => {
-    try {
-      setIsLoading(true);
-      const loginData = await authAxios.post<OAuthCredentials>('/oauth/token', {
-        grantType: 'password',
-        clientId: AUTH_CLIENT_ID,
-        email,
-        password,
-        passwordConfirmation,
-      });
+  const signInByEmail: SignInByEmail = async ({ email, password }) => {
+    const loginData = await authAxios.post<OAuthCredentials>('/oauth/token', {
+      grantType: 'password',
+      clientId: AUTH_CLIENT_ID,
+      email,
+      password,
+    });
 
-      await AsyncStorage.setItem('credentials', JSON.stringify(loginData.data));
-      await getCurrentUser();
-      setIsLoading(false);
-      return true;
-    } catch (err) {
-      console.error(err);
-      setIsLoading(false);
-      return false;
-    }
+    await AsyncStorage.setItem('credentials', JSON.stringify(loginData.data));
+    await getCurrentUser();
+  };
+
+  const forgotPassword: ForgotPassword = async user => {
+    await authAxios.post<ForgotPasswordData>('/users/password.json', { user });
   };
 
   const signInByPhoneNumber: SignInByPhoneNumber = async ({ phoneNumber, otpCode }) => {
-    try {
-      setIsLoading(true);
-      const loginData = await authAxios.post<OAuthCredentials>('/oauth/token', {
-        grantType: 'password',
-        clientId: AUTH_CLIENT_ID,
-        phoneNumber,
-        otpCode,
-      });
+    const loginData = await authAxios.post<OAuthCredentials>('/oauth/token', {
+      grantType: 'password',
+      clientId: AUTH_CLIENT_ID,
+      phoneNumber,
+      otpCode,
+    });
 
-      await AsyncStorage.setItem('credentials', JSON.stringify(loginData.data));
-      await getCurrentUser();
-      setIsLoading(false);
-      return true;
-    } catch (err) {
-      console.error(err);
-      setIsLoading(false);
-      return false;
-    }
+    await AsyncStorage.setItem('credentials', JSON.stringify(loginData.data));
+    await getCurrentUser();
   };
 
   const signInByAssertion: SignInByAssertion = async ({ provider, assertion }) => {
-    try {
-      setIsLoading(true);
-      const loginData = await authAxios.post<OAuthCredentials>('/oauth/token', {
-        grantType: 'assertion',
-        clientId: AUTH_CLIENT_ID,
-        provider,
-        assertion,
-      });
+    const loginData = await authAxios.post<OAuthCredentials>('/oauth/token', {
+      grantType: 'assertion',
+      clientId: AUTH_CLIENT_ID,
+      provider,
+      assertion,
+    });
 
-      await AsyncStorage.setItem('credentials', JSON.stringify(loginData.data));
-      await getCurrentUser();
-
-      setIsLoading(false);
-      return true;
-    } catch (err) {
-      console.error(err);
-
-      setIsLoading(false);
-      return false;
-    }
+    await AsyncStorage.setItem('credentials', JSON.stringify(loginData.data));
+    await getCurrentUser();
   };
 
   // Remove data from context, so the App can be notified and send the user to the AuthStack
   const signOut: SignOut = async () => {
-    try {
-      setIsLoading(true);
-      const token = JSON.parse(await AsyncStorage.getItem('credentials'));
-      await AsyncStorage.removeItem('credentials');
-      setCurrentUser(null);
-      await authAxios.post('/oauth/revoke', {
-        clientId: AUTH_CLIENT_ID,
-        token,
-      });
-      setIsLoading(false);
-      return true;
-    } catch (err) {
-      console.error(err);
-      setIsLoading(false);
-      return false;
-    }
+    const token = JSON.parse(await AsyncStorage.getItem('credentials'));
+    await AsyncStorage.removeItem('credentials');
+    setCurrentUser(null);
+    await authAxios.post('/oauth/revoke', {
+      clientId: AUTH_CLIENT_ID,
+      token,
+    });
   };
 
   const update = async (userData: User) => {
@@ -207,10 +171,10 @@ export const AuthProvider: React.FC = ({ children }) => {
         currentUser,
         setCurrentUser,
         userLoading: setupIsLoading || userLoading,
-        isLoading,
         signUpByEmail,
         sendOtp,
         signInByEmail,
+        forgotPassword,
         signInByPhoneNumber,
         signInByAssertion,
         signOut,

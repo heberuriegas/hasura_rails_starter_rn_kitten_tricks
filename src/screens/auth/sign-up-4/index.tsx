@@ -3,7 +3,16 @@ import { View, TouchableWithoutFeedback } from 'react-native';
 import { Button, CheckBox, Input, StyleService, Text, useStyleSheet, Icon, Spinner } from '@ui-kitten/components';
 import { ImageOverlay } from './extra/image-overlay.component';
 import { ProfileAvatar } from './extra/profile-avatar.component';
-import { EmailIcon, FacebookIcon, GoogleIcon, GithubIcon, PersonIcon, PlusIcon, TwitterIcon } from './extra/icons';
+import {
+  EmailIcon,
+  FacebookIcon,
+  GoogleIcon,
+  GithubIcon,
+  PersonIcon,
+  PlusIcon,
+  TwitterIcon,
+  AtIcon,
+} from './extra/icons';
 import { KeyboardAvoidingView } from './extra/3rd-party';
 import { authorize } from 'react-native-app-auth';
 import { useAuth } from '../../../hooks/use-auth';
@@ -11,14 +20,18 @@ import { useFormik } from 'formik';
 import { useToast } from 'react-native-toast-notifications';
 import * as Yup from 'yup';
 import YupPassword from 'yup-password';
-import { UserRegistrationByEmail } from '../../../context/auth/auth.context.types';
 YupPassword(Yup);
+import { UserSignUpByEmail } from '../../../context/auth/auth.context.types';
+import { LockIcon } from './extra/icons';
+import useOAuth from '../../../hooks/use-oauth';
 
 const SignUpScreen = ({ navigation }): React.ReactElement => {
   const [passwordVisible, setPasswordVisible] = React.useState<boolean>(false);
+  const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const toast = useToast();
 
-  const { signInByAssertion, signInByEmail, signUpByEmail, isLoading } = useAuth();
+  const { signUpByEmail } = useAuth();
+  const { githubSignIn } = useOAuth();
 
   const styles = useStyleSheet(themedStyles);
 
@@ -32,12 +45,14 @@ const SignUpScreen = ({ navigation }): React.ReactElement => {
       .max(15, 'Must be 15 characters or less')
       .required('Required'),
     email: Yup.string().email('Invalid email address').required('Required'),
-    password: Yup.string().password(),
-    passwordConfirmation: Yup.string().oneOf([Yup.ref('password'), null], 'Passwords must match'),
+    password: Yup.string().password().required('Required'),
+    passwordConfirmation: Yup.string()
+      .oneOf([Yup.ref('password'), null], 'Passwords must match')
+      .required('Required'),
     // termsAccepted: Yup.bool().oneOf([true], 'Field must be checked'),
   });
 
-  const { values, touched, errors, submitForm, handleChange, handleBlur } = useFormik<UserRegistrationByEmail>({
+  const { values, touched, errors, submitForm, handleChange, handleBlur } = useFormik<UserSignUpByEmail>({
     initialValues: {
       username: '',
       email: '',
@@ -48,9 +63,10 @@ const SignUpScreen = ({ navigation }): React.ReactElement => {
     },
     validationSchema,
     onSubmit: async (_values, { setErrors }) => {
+      setIsLoading(true);
       try {
         await signUpByEmail(_values);
-        navigation && navigation.navigate('SignIn4');
+        navigation && navigation.navigate('SignIn');
       } catch (err) {
         const dataErrors = err?.response?.data?.errors;
         if (dataErrors) {
@@ -61,16 +77,14 @@ const SignUpScreen = ({ navigation }): React.ReactElement => {
             type: 'danger',
           });
         }
+      } finally {
+        setIsLoading(false);
       }
     },
   });
 
-  const onSignUpButtonPress = (): void => {
-    navigation && navigation.goBack();
-  };
-
   const onSignInButtonPress = (): void => {
-    navigation && navigation.navigate('SignIn4');
+    navigation && navigation.navigate('SignIn');
   };
 
   const onPasswordIconPress = (): void => {
@@ -96,49 +110,6 @@ const SignUpScreen = ({ navigation }): React.ReactElement => {
     [],
   );
 
-  const backendSignIn = async () => {
-    const doorkeeperSignIn = {
-      redirectUrl: 'com.disciplind.auth://oauthredirect',
-      clientId: 's_s6nFb7cKgISyPY6WPogb7T85ca4OqwJ7tsq7JUuvo',
-      clientSecret: 's2d0gTNPl5ZRHL-O-UllAvap00BD_Jvm9K5A8dpWG_U',
-      dangerouslyAllowInsecureHttpRequests: __DEV__,
-      additionalHeaders: { Accept: 'application/json' },
-      scopes: [],
-      usePkce: true,
-      serviceConfiguration: {
-        authorizationEndpoint: 'http://192.168.0.200:3000/oauth/authorize',
-        tokenEndpoint: 'http://192.168.0.200:3000/oauth/token',
-        revocationEndpoint: 'http://192.168.0.200:3000/oauth/revoke',
-      },
-    };
-    // Log in to get an authentication token
-    const authState = await authorize(doorkeeperSignIn);
-  };
-
-  const githubSignIn = async () => {
-    const githubConfig = {
-      redirectUrl: 'com.disciplind.auth://oauthredirect',
-      clientId: '6160786382f2f5221c40',
-      clientSecret: '35df07973ff9e7c602e985bc930771612209f411',
-      scopes: ['identity', 'user', 'user:email'],
-      additionalHeaders: { Accept: 'application/json' },
-      usePkce: true,
-      serviceConfiguration: {
-        authorizationEndpoint: 'https://github.com/login/oauth/authorize',
-        tokenEndpoint: 'https://github.com/login/oauth/access_token',
-        revocationEndpoint: 'https://github.com/settings/connections/applications/6160786382f2f5221c40',
-      },
-    };
-
-    // Log in to get an authentication token
-    const authState = await authorize(githubConfig);
-
-    const result = await signInByAssertion({
-      provider: 'github',
-      assertion: authState.accessToken,
-    });
-  };
-
   return (
     <KeyboardAvoidingView>
       <ImageOverlay style={styles.container} source={require('./assets/image-background.jpg')}>
@@ -163,21 +134,21 @@ const SignUpScreen = ({ navigation }): React.ReactElement => {
             status="control"
             autoCapitalize="none"
             placeholder="Name"
-            accessoryRight={PersonIcon}
-            onChangeText={handleChange('name')}
-            onBlur={handleBlur('name')}
+            accessoryLeft={PersonIcon}
             value={values.name}
+            onBlur={handleBlur('name')}
+            onChangeText={handleChange('name')}
           />
           {touched.name && errors.name ? <Text status="danger">{errors.name as string}</Text> : null}
           <Input
             style={styles.formInput}
             status="control"
             autoCapitalize="none"
-            placeholder="User Name"
-            accessoryRight={PersonIcon}
-            onChangeText={handleChange('username')}
-            onBlur={handleBlur('username')}
+            placeholder="Username"
+            accessoryLeft={AtIcon}
             value={values.username}
+            onBlur={handleBlur('username')}
+            onChangeText={handleChange('username')}
           />
           {touched.username && errors.username ? <Text status="danger">{errors.username as string}</Text> : null}
           <Input
@@ -185,10 +156,10 @@ const SignUpScreen = ({ navigation }): React.ReactElement => {
             status="control"
             autoCapitalize="none"
             placeholder="Email"
-            accessoryRight={EmailIcon}
-            onChangeText={handleChange('email')}
-            onBlur={handleBlur('email')}
+            accessoryLeft={EmailIcon}
             value={values.email}
+            onBlur={handleBlur('email')}
+            onChangeText={handleChange('email')}
           />
           {touched.email && errors.email ? <Text status="danger">{errors.email as string}</Text> : null}
           <Input
@@ -197,10 +168,11 @@ const SignUpScreen = ({ navigation }): React.ReactElement => {
             autoCapitalize="none"
             secureTextEntry={!passwordVisible}
             placeholder="Password"
+            accessoryLeft={LockIcon}
             accessoryRight={renderPasswordIcon}
-            onChangeText={handleChange('password')}
-            onBlur={handleBlur('password')}
             value={values.password}
+            onBlur={handleBlur('password')}
+            onChangeText={handleChange('password')}
           />
           {touched.password && errors.password ? <Text status="danger">{errors.password as string}</Text> : null}
           <Input
@@ -209,10 +181,10 @@ const SignUpScreen = ({ navigation }): React.ReactElement => {
             autoCapitalize="none"
             secureTextEntry={!passwordVisible}
             placeholder="Password confirmation"
-            accessoryRight={renderPasswordIcon}
-            onChangeText={handleChange('passwordConfirmation')}
-            onBlur={handleBlur('passwordConfirmation')}
+            accessoryLeft={LockIcon}
             value={values.passwordConfirmation}
+            onBlur={handleBlur('passwordConfirmation')}
+            onChangeText={handleChange('passwordConfirmation')}
           />
           {touched.passwordConfirmation && errors.passwordConfirmation ? (
             <Text status="danger">{errors.passwordConfirmation as string}</Text>
@@ -244,6 +216,11 @@ const SignUpScreen = ({ navigation }): React.ReactElement => {
           <Text style={styles.socialAuthHintText} status="control">
             Or Register Using Social Media
           </Text>
+          {/* <View style={styles.socialAuthButtonsContainer}>
+            <Button appearance="ghost" status="control" size="giant" accessoryLeft={GoogleIcon} />
+            <Button appearance="ghost" status="control" size="giant" accessoryLeft={FacebookIcon} />
+            <Button appearance="ghost" status="control" size="giant" accessoryLeft={TwitterIcon} />
+          </View> */}
           <View style={styles.socialAuthButtonsContainer}>
             <Button
               disabled={isLoading}
