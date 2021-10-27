@@ -2,7 +2,7 @@ import React, { ReactElement } from 'react';
 import { StyleSheet, View, TouchableWithoutFeedback } from 'react-native';
 import { Button, Input, Text, Icon, Spinner } from '@ui-kitten/components';
 import { ImageOverlay } from './extra/image-overlay.component';
-import { LockIcon } from './extra/icons';
+import { FacebookIcon, GoogleIcon, TwitterIcon, EmailIcon, LockIcon, GithubIcon } from './extra/icons';
 import { KeyboardAvoidingView } from './extra/3rd-party';
 import { useFormik } from 'formik';
 import { UserSignInByEmail } from '../../../../context/auth/auth.context.types';
@@ -97,6 +97,15 @@ export default ({ navigation }): React.ReactElement => {
         </View>
         <View style={styles.formContainer}>
           <Input
+            status="control"
+            placeholder="Email"
+            accessoryLeft={EmailIcon}
+            value={values.email}
+            onBlur={handleBlur('email')}
+            onChangeText={handleChange('email')}
+          />
+          {touched.email && errors.email ? <Text status="danger">{errors.email as string}</Text> : null}
+          <Input
             style={styles.passwordInput}
             status="control"
             placeholder="Password"
@@ -126,10 +135,31 @@ export default ({ navigation }): React.ReactElement => {
           disabled={githubIsLoading || signInIsLoading}
           accessoryLeft={signInIsLoading ? () => <Spinner /> : null}
         >
-          Validate OTP
+          SIGN IN
         </Button>
+        <View style={styles.socialAuthContainer}>
+          <Text style={styles.socialAuthHintText} status="control">
+            Or Sign In using Social Media
+          </Text>
+          {/* <View style={styles.socialAuthButtonsContainer}>
+            <Button appearance="ghost" status="control" size="giant" accessoryLeft={GoogleIcon} />
+            <Button appearance="ghost" status="control" size="giant" accessoryLeft={FacebookIcon} />
+            <Button appearance="ghost" status="control" size="giant" accessoryLeft={TwitterIcon} />
+          </View> */}
+          <View style={styles.socialAuthButtonsContainer}>
+            <Button
+              disabled={signInIsLoading || githubIsLoading}
+              size="giant"
+              status="control"
+              accessoryLeft={githubIsLoading ? () => <Spinner /> : GithubIcon}
+              onPress={onGithubSignInPress}
+            >
+              Sign in with Github
+            </Button>
+          </View>
+        </View>
         <Button style={styles.signUpButton} appearance="ghost" status="control" onPress={onSignUpButtonPress}>
-          Try another phone number
+          Don't have an account? Sign Up
         </Button>
       </ImageOverlay>
     </KeyboardAvoidingView>

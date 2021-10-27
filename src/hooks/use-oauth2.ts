@@ -1,16 +1,17 @@
 import { authorize } from 'react-native-app-auth';
 import { useAuth } from './use-auth';
 import { OAUTH2_HOST, OAUTH2_CLIENT_ID, OAUTH2_CLIENT_SECRET, GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET } from '@env';
+import { OAuthState } from '../../types/credentials';
 
-interface UseOAuthRespnse {
+interface UseOAuth2Respnse {
   oauth2SignIn: () => void;
   githubSignIn: () => void;
 }
 
-type UseOAuth = () => UseOAuthRespnse;
+type UseOAuth2 = () => UseOAuth2Respnse;
 
-const useOAuth: UseOAuth = () => {
-  const { signInByAssertion } = useAuth();
+const useOAuth2: UseOAuth2 = () => {
+  const { signInByAssertion, signInByOAuth2 } = useAuth();
 
   const oauth2SignIn = async () => {
     const oauth2Config = {
@@ -18,6 +19,7 @@ const useOAuth: UseOAuth = () => {
       clientId: OAUTH2_CLIENT_ID,
       clientSecret: OAUTH2_CLIENT_SECRET,
       dangerouslyAllowInsecureHttpRequests: __DEV__,
+      tokenAdditionalParameters: ['expires_in', 'created_at'],
       additionalHeaders: { Accept: 'application/json' },
       scopes: [],
       usePkce: true,
@@ -29,6 +31,7 @@ const useOAuth: UseOAuth = () => {
     };
     // Log in to get an authentication token
     const authState = await authorize(oauth2Config);
+    signInByOAuth2(authState);
   };
 
   const githubSignIn = async () => {
@@ -58,4 +61,4 @@ const useOAuth: UseOAuth = () => {
   return { githubSignIn, oauth2SignIn };
 };
 
-export default useOAuth;
+export default useOAuth2;

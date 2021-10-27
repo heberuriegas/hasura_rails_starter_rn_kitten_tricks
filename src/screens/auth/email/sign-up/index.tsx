@@ -23,7 +23,7 @@ import YupPassword from 'yup-password';
 YupPassword(Yup);
 import { UserSignUpByEmail } from '../../../../context/auth/auth.context.types';
 import { LockIcon } from './extra/icons';
-import useOAuth from '../../../../hooks/use-oauth';
+import useOAuth2 from '../../../../hooks/use-oauth2';
 
 const SignUpScreen = ({ navigation }): React.ReactElement => {
   const [passwordVisible, setPasswordVisible] = React.useState<boolean>(false);
@@ -32,7 +32,7 @@ const SignUpScreen = ({ navigation }): React.ReactElement => {
   const toast = useToast();
 
   const { signUpByEmail } = useAuth();
-  const { githubSignIn } = useOAuth();
+  const { githubSignIn } = useOAuth2();
 
   const styles = useStyleSheet(themedStyles);
 

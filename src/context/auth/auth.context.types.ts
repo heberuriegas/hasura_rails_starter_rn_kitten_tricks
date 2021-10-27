@@ -1,5 +1,6 @@
 import { User } from '../../../types/user';
 import { OAuthCredentials } from '../../../types/credentials';
+import { AuthorizeResult } from 'react-native-app-auth';
 
 export interface UserSignUpByEmail {
   email: string;
@@ -24,6 +25,12 @@ export interface SignUpData {
 }
 
 export type SignUpByEmail = (user: UserSignUpByEmail) => Promise<void>;
+
+export interface UserSignUpByPhoneNumber {
+  phoneNumber: string;
+}
+
+export type SignUpByPhoneNumber = (user: UserSignUpByPhoneNumber) => Promise<void>;
 
 export interface UserSignInByEmail {
   email: string;
@@ -56,6 +63,8 @@ export interface SignInByAssertionParams {
 
 export type SignInByAssertion = (params: SignInByAssertionParams) => Promise<void>;
 
+export type SignInByOAuth2 = (authState: AuthorizeResult) => Promise<void>;
+
 export type SignOut = () => Promise<void>;
 
 export interface AuthContextData {
@@ -64,10 +73,12 @@ export interface AuthContextData {
   isSignedIn: boolean;
   userLoading: boolean;
   signUpByEmail: SignUpByEmail;
+  signUpByPhoneNumber: SignUpByPhoneNumber;
   signInByEmail: SignInByEmail;
   forgotPassword: ForgotPassword;
   signInByPhoneNumber: SignInByPhoneNumber;
   signInByAssertion: SignInByAssertion;
+  signInByOAuth2: SignInByOAuth2;
   update(User): Promise<void>;
   signOut: SignOut;
   sendOtp(phoneNumber: String, via: String, validationHash?: String): Promise<void>;

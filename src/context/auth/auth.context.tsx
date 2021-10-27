@@ -16,7 +16,13 @@ import {
 } from './auth.context.types';
 import { User } from 'types/user';
 import { OAuthCredentials } from '../../../types/credentials';
-import { SignUpByEmail, ForgotPassword, ForgotPasswordData } from './auth.context.types';
+import {
+  SignUpByEmail,
+  ForgotPassword,
+  ForgotPasswordData,
+  SignInByOAuth2,
+  SignUpByPhoneNumber,
+} from './auth.context.types';
 import { useToast } from 'react-native-toast-notifications';
 
 const AuthContext = createContext<AuthContextData>({} as AuthContextData);
@@ -97,6 +103,22 @@ export const AuthProvider: React.FC = ({ children }) => {
     }
   };
 
+  const signUpByPhoneNumber: SignUpByPhoneNumber = async user => {
+    await authAxios.post<SignUpData>(
+      '/users.json',
+      { user },
+      {
+        headers: {
+          'Client-Id': AUTH_CLIENT_ID,
+        },
+      },
+    );
+
+    toast.show(
+      'Please confirm your email address by clicking on the link in the confirmation email sent to your account.',
+    );
+  };
+
   const signInByEmail: SignInByEmail = async ({ email, password }) => {
     const loginData = await authAxios.post<OAuthCredentials>('/oauth/token', {
       grantType: 'password',
@@ -137,6 +159,21 @@ export const AuthProvider: React.FC = ({ children }) => {
     await getCurrentUser();
   };
 
+  const signInByOAuth2: SignInByOAuth2 = async authState => {
+    const expiresIn = Math.floor((Date.parse(authState.accessTokenExpirationDate) - new Date().getTime()) / 1000);
+    const credentials = {
+      accessToken: authState.accessToken,
+      tokenType: authState.tokenType,
+      expiresIn: expiresIn,
+      refreshToken: authState.refreshToken,
+      scope: authState.scopes,
+      createdAt: authState.tokenAdditionalParameters.created_at,
+    };
+
+    await AsyncStorage.setItem('credentials', JSON.stringify(credentials));
+    await getCurrentUser();
+  };
+
   // Remove data from context, so the App can be notified and send the user to the AuthStack
   const signOut: SignOut = async () => {
     const token = JSON.parse(await AsyncStorage.getItem('credentials'));
@@ -172,11 +209,13 @@ export const AuthProvider: React.FC = ({ children }) => {
         setCurrentUser,
         userLoading: setupIsLoading || userLoading,
         signUpByEmail,
+        signUpByPhoneNumber,
         sendOtp,
         signInByEmail,
         forgotPassword,
         signInByPhoneNumber,
         signInByAssertion,
+        signInByOAuth2,
         signOut,
         update,
       }}

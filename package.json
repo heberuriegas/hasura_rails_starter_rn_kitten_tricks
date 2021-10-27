@@ -75,6 +75,7 @@
     "react-native-event-listeners": "^1.0.7",
     "react-native-gesture-handler": "~1.8.0",
     "react-native-keyboard-aware-scroll-view": "^0.9.1",
+    "react-native-phone-number-input": "^2.1.0",
     "react-native-reanimated": "~1.13.0",
     "react-native-safari-view": "naoufal/react-native-safari-view#master",
     "react-native-safe-area-context": "3.1.9",
@@ -85,7 +86,8 @@
     "react-native-toast-notifications": "^3.2.2",
     "react-native-web": "^0.15.0",
     "yup": "^0.32.11",
-    "yup-password": "^0.2.2"
+    "yup-password": "^0.2.2",
+    "yup-phone": "^1.2.19"
   },
   "devDependencies": {
     "@babel/core": "~7.9.0",
