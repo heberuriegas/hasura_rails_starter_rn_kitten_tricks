@@ -116,6 +116,14 @@ export default ({ route, navigation }): React.ReactElement => {
               </Text>
             )}
           />
+          <View style={styles.resendContainer}>
+            <Button appearance="ghost" status="info" onPress={() => sendOtpWithValidationHash('sms')}>
+              Re-send code with sms
+            </Button>
+            <Button appearance="ghost" status="info" onPress={() => sendOtpWithValidationHash('whatsapp')}>
+              Re-send code with whatsapp
+            </Button>
+          </View>
         </View>
         <Button
           style={styles.signInButton}
@@ -124,7 +132,7 @@ export default ({ route, navigation }): React.ReactElement => {
           disabled={signInIsLoading}
           accessoryLeft={signInIsLoading ? () => <Spinner /> : null}
         >
-          SIGN IN
+          Confirm code
         </Button>
         <Button style={styles.signUpButton} appearance="ghost" status="control" onPress={onSignUpButtonPress}>
           Change phone number
@@ -147,6 +155,9 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 16,
     alignItems: 'center',
+  },
+  resendContainer: {
+    marginTop: 30,
   },
   signInLabel: {
     marginBottom: 30,
