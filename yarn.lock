@@ -13907,6 +13907,11 @@ react-native-config@^1.4.2:
   resolved "https://registry.yarnpkg.com/react-native-config/-/react-native-config-1.4.2.tgz#cc39f22ed72c5cb06af1adf0ba70ef01593900b4"
   integrity sha512-iTvCvThvFTH7SdiBcsxYtpLy86zglsh51ZBqFPPZ75tdrQMdlRnDNnb86kNjQf03KT0qs1nCMLRejfPMIim8iA==
 
+react-native-confirmation-code-field@^7.1.0:
+  version "7.1.0"
+  resolved "https://registry.yarnpkg.com/react-native-confirmation-code-field/-/react-native-confirmation-code-field-7.1.0.tgz#2394e80ad399cbbcfc7f87bb2eb8bc34eaa43a55"
+  integrity sha512-cGE36gnyQR9inqQwHghPhBiMj8PZOmW4n/bUtv+xnDxf4/gTv7ga6v3DSCREfQXRyeCmHZ7iRzj7diJzAgvxFg==
+
 react-native-country-picker-modal@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/react-native-country-picker-modal/-/react-native-country-picker-modal-2.0.0.tgz#005421303349a81fedf5975e465405bb4b7312d5"
@@ -13965,6 +13970,11 @@ react-native-keyboard-aware-scroll-view@^0.9.1:
   dependencies:
     prop-types "^15.6.2"
     react-native-iphone-x-helper "^1.0.3"
+
+react-native-otp-verify@^1.0.4:
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/react-native-otp-verify/-/react-native-otp-verify-1.0.4.tgz#7a330264d2ac3b4155f8b19a5bcaab6ab4fa456c"
+  integrity sha512-ME8XnRHxFj8Z7fpe8Gqnup///cicB6WROsf2si75zix2VWK0LW7z5dyT5EL/bOynj9KphSf219LWLKiou2aDAQ==
 
 react-native-phone-number-input@^2.1.0:
   version "2.1.0"

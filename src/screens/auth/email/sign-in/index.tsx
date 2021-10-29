@@ -72,7 +72,7 @@ export default ({ navigation }): React.ReactElement => {
       await githubSignIn();
     } catch (err) {
       console.error(err);
-      toast.show('We are sorry, something went wrong', { type: 'danger' });
+      toast.show('User authentication failed due to invalid authentication values', { type: 'danger' });
     } finally {
       setGithubIsLoading(false);
     }

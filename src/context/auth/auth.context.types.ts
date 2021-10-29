@@ -30,7 +30,7 @@ export interface UserSignUpByPhoneNumber {
   phoneNumber: string;
 }
 
-export type SignUpByPhoneNumber = (user: UserSignUpByPhoneNumber) => Promise<void>;
+export type SignUpByPhoneNumber = (user: UserSignUpByPhoneNumber) => Promise<SignUpData>;
 
 export interface UserSignInByEmail {
   email: string;
@@ -52,6 +52,7 @@ export type ForgotPassword = (user: UserForgotPassword) => Promise<void>;
 export interface SignInByPhoneNumberParams {
   phoneNumber: string;
   otpCode: string;
+  validationHash?: string;
 }
 
 export type SignInByPhoneNumber = (params: SignInByPhoneNumberParams) => Promise<void>;
@@ -60,6 +61,14 @@ export interface SignInByAssertionParams {
   assertion: string;
   provider: string;
 }
+
+export interface SendOtpParams {
+  phoneNumber: string;
+  via?: string;
+  validationHash?: string;
+}
+
+export type SendOtp = (params: SendOtpParams) => Promise<void>;
 
 export type SignInByAssertion = (params: SignInByAssertionParams) => Promise<void>;
 
@@ -81,5 +90,5 @@ export interface AuthContextData {
   signInByOAuth2: SignInByOAuth2;
   update(User): Promise<void>;
   signOut: SignOut;
-  sendOtp(phoneNumber: String, via: String, validationHash?: String): Promise<void>;
+  sendOtp: SendOtp;
 }

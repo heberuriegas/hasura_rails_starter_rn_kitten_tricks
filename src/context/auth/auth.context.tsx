@@ -78,8 +78,8 @@ export const AuthProvider: React.FC = ({ children }) => {
     setIsSignedIn(Boolean(currentUser));
   }, [currentUser]);
 
-  const sendOtp = async (phoneNumber: String, via: String = 'sms', validationHash?: String) => {
-    // await fetch();
+  const sendOtp: SignInByPhoneNumber = async otp => {
+    await authAxios.post('/api/auth/send_otp', { otp });
   };
 
   const signUpByEmail: SignUpByEmail = async user => {
@@ -104,7 +104,7 @@ export const AuthProvider: React.FC = ({ children }) => {
   };
 
   const signUpByPhoneNumber: SignUpByPhoneNumber = async user => {
-    await authAxios.post<SignUpData>(
+    const response = await authAxios.post<SignUpData>(
       '/users.json',
       { user },
       {
@@ -117,6 +117,8 @@ export const AuthProvider: React.FC = ({ children }) => {
     toast.show(
       'Please confirm your email address by clicking on the link in the confirmation email sent to your account.',
     );
+
+    return response.data;
   };
 
   const signInByEmail: SignInByEmail = async ({ email, password }) => {

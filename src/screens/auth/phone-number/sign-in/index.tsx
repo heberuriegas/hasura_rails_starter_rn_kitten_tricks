@@ -1,165 +1,133 @@
-import React, { ReactElement } from 'react';
-import { StyleSheet, View, TouchableWithoutFeedback } from 'react-native';
-import { Button, Input, Text, Icon, Spinner } from '@ui-kitten/components';
+import React, { useState, useEffect, useCallback } from 'react';
+import { StyleSheet, View, Keyboard, Platform } from 'react-native';
+import { Button, Text, Spinner } from '@ui-kitten/components';
 import { ImageOverlay } from './extra/image-overlay.component';
-import { FacebookIcon, GoogleIcon, TwitterIcon, EmailIcon, LockIcon, GithubIcon } from './extra/icons';
 import { KeyboardAvoidingView } from './extra/3rd-party';
-import { useFormik } from 'formik';
-import { UserSignInByEmail } from '../../../../context/auth/auth.context.types';
 import { useAuth } from '../../../../hooks/use-auth';
 import { useToast } from 'react-native-toast-notifications';
-import useOAuth2 from '../../../../hooks/use-oauth2';
-import * as Yup from 'yup';
-import YupPassword from 'yup-password';
-YupPassword(Yup);
+import { CodeField, Cursor, useBlurOnFulfill, useClearByFocusCell } from 'react-native-confirmation-code-field';
+import RNOtpVerify from 'react-native-otp-verify';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export default ({ navigation }): React.ReactElement => {
-  const [passwordVisible, setPasswordVisible] = React.useState<boolean>(false);
+const CELL_COUNT = 6;
+
+interface SignInByPhoneNumberParams {
+  phoneNumber: string;
+}
+
+export default ({ route, navigation }): React.ReactElement => {
+  const [restartListener, setRestartListener] = useState<boolean>(false);
   const [signInIsLoading, setSignInIsLoading] = React.useState<boolean>(false);
-  const [githubIsLoading, setGithubIsLoading] = React.useState<boolean>(false);
   const toast = useToast();
 
-  const { signInByEmail } = useAuth();
-  const { githubSignIn } = useOAuth2();
+  const { phoneNumber } = route.params as SignInByPhoneNumberParams;
 
-  const validationSchema = Yup.object({
-    email: Yup.string().email('Invalid email address').required('Required'),
-    password: Yup.string().password().required('Required'),
+  const { signInByPhoneNumber, sendOtp } = useAuth();
+
+  const [value, setValue] = useState<string>();
+  const ref = useBlurOnFulfill({ value, cellCount: CELL_COUNT });
+  const [props, getCellOnLayoutHandler] = useClearByFocusCell({
+    value,
+    setValue,
   });
 
-  const { values, touched, errors, submitForm, handleChange, handleBlur } = useFormik<UserSignInByEmail>({
-    initialValues: {
-      email: '',
-      password: '',
-    },
-    validationSchema,
-    onSubmit: async (_values, { setErrors, resetForm }) => {
-      setSignInIsLoading(true);
-      try {
-        await signInByEmail(_values);
-        resetForm();
-      } catch (err) {
-        const dataErrors = err?.response?.data?.errors;
-        if (dataErrors) {
-          setErrors(dataErrors);
-        } else {
-          console.error(err);
-          toast.show('Invalid username or password', {
-            type: 'warning',
-          });
-        }
-      } finally {
-        setSignInIsLoading(false);
+  const otpHandler = (message: string) => {
+    const _value = /(\d{6})/g.exec(message)[1];
+    setValue(_value);
+    RNOtpVerify.removeListener();
+    Keyboard.dismiss();
+  };
+
+  const sendOtpWithValidationHash = useCallback(async via => {
+    let validationHash = null;
+    if (Platform.OS === 'android') {
+      validationHash = await AsyncStorage.getItem('validationHash');
+      if (!validationHash) {
+        validationHash = (await RNOtpVerify.getHash())[0];
+        AsyncStorage.setItem('validationHash', validationHash);
       }
-    },
-  });
+    }
+    sendOtp({ phoneNumber, via, validationHash });
+    setRestartListener(listener => !listener);
+  }, []);
 
+  useEffect(() => {
+    if (value && value.length === 6) {
+      onSubmit();
+    }
+  }, [value]);
+
+  useEffect(() => {
+    sendOtpWithValidationHash('sms');
+  }, []);
+
+  useEffect(() => {
+    if (Platform.OS === 'android') {
+      RNOtpVerify.getOtp().then(p => RNOtpVerify.addListener(otpHandler));
+
+      return () => {
+        RNOtpVerify.removeListener();
+      };
+    }
+  }, [restartListener]);
+
+  const onSubmit = async () => {
+    try {
+      setSignInIsLoading(true);
+      await signInByPhoneNumber({ phoneNumber: phoneNumber, otpCode: value });
+    } catch (err) {
+      toast.show('User authentication failed due to invalid authentication code', { type: 'danger' });
+    } finally {
+      setSignInIsLoading(false);
+    }
+  };
+  2;
   const onSignUpButtonPress = (): void => {
     navigation && navigation.navigate('SignUp');
   };
 
-  const onForgotPasswordButtonPress = (): void => {
-    navigation && navigation.navigate('ForgotPassword');
-  };
-
-  const onPasswordIconPress = (): void => {
-    setPasswordVisible(!passwordVisible);
-  };
-
-  const onGithubSignInPress = async (): Promise<void> => {
-    setGithubIsLoading(true);
-    try {
-      await githubSignIn();
-    } catch (err) {
-      console.error(err);
-      toast.show('We are sorry, something went wrong', { type: 'danger' });
-    } finally {
-      setGithubIsLoading(false);
-    }
-  };
-
-  const renderPasswordIcon = (props): ReactElement => (
-    <TouchableWithoutFeedback onPress={onPasswordIconPress}>
-      <Icon {...props} name={passwordVisible ? 'eye-off' : 'eye'} />
-    </TouchableWithoutFeedback>
-  );
-
   return (
     <KeyboardAvoidingView>
       <ImageOverlay style={styles.container} source={require('./assets/image-background.jpg')}>
-        <View style={styles.headerContainer}>
-          <Text category="h1" status="control">
-            Hello
-          </Text>
-          <Text style={styles.signInLabel} category="s1" status="control">
-            Sign in to your account
-          </Text>
-        </View>
+        <View style={styles.headerContainer}></View>
         <View style={styles.formContainer}>
-          <Input
-            status="control"
-            placeholder="Email"
-            accessoryLeft={EmailIcon}
-            value={values.email}
-            onBlur={handleBlur('email')}
-            onChangeText={handleChange('email')}
+          <Text style={styles.signInLabel} category="s1" status="control">
+            Enter the code received by sms or whatsapp
+          </Text>
+          <CodeField
+            ref={ref}
+            {...props}
+            // Use `caretHidden={false}` when users can't paste a text value, because context menu doesn't appear
+            autoFocus
+            value={value}
+            onChangeText={setValue}
+            cellCount={CELL_COUNT}
+            rootStyle={styles.codeFieldRoot}
+            keyboardType="number-pad"
+            textContentType="oneTimeCode"
+            autoCompleteType="postal-code"
+            renderCell={({ index, symbol, isFocused }) => (
+              <Text
+                key={index}
+                style={[styles.cell, isFocused && styles.focusCell]}
+                onLayout={getCellOnLayoutHandler(index)}
+              >
+                {symbol || (isFocused ? <Cursor /> : null)}
+              </Text>
+            )}
           />
-          {touched.email && errors.email ? <Text status="danger">{errors.email as string}</Text> : null}
-          <Input
-            style={styles.passwordInput}
-            status="control"
-            placeholder="Password"
-            accessoryLeft={LockIcon}
-            accessoryRight={renderPasswordIcon}
-            secureTextEntry={!passwordVisible}
-            value={values.password}
-            onBlur={handleBlur('password')}
-            onChangeText={handleChange('password')}
-          />
-          {touched.password && errors.password ? <Text status="danger">{errors.password as string}</Text> : null}
-          <View style={styles.forgotPasswordContainer}>
-            <Button
-              style={styles.forgotPasswordButton}
-              appearance="ghost"
-              status="control"
-              onPress={onForgotPasswordButtonPress}
-            >
-              Forgot your password?
-            </Button>
-          </View>
         </View>
         <Button
           style={styles.signInButton}
           size="giant"
-          onPress={submitForm}
-          disabled={githubIsLoading || signInIsLoading}
+          onPress={onSubmit}
+          disabled={signInIsLoading}
           accessoryLeft={signInIsLoading ? () => <Spinner /> : null}
         >
           SIGN IN
         </Button>
-        <View style={styles.socialAuthContainer}>
-          <Text style={styles.socialAuthHintText} status="control">
-            Or Sign In using Social Media
-          </Text>
-          {/* <View style={styles.socialAuthButtonsContainer}>
-            <Button appearance="ghost" status="control" size="giant" accessoryLeft={GoogleIcon} />
-            <Button appearance="ghost" status="control" size="giant" accessoryLeft={FacebookIcon} />
-            <Button appearance="ghost" status="control" size="giant" accessoryLeft={TwitterIcon} />
-          </View> */}
-          <View style={styles.socialAuthButtonsContainer}>
-            <Button
-              disabled={signInIsLoading || githubIsLoading}
-              size="giant"
-              status="control"
-              accessoryLeft={githubIsLoading ? () => <Spinner /> : GithubIcon}
-              onPress={onGithubSignInPress}
-            >
-              Sign in with Github
-            </Button>
-          </View>
-        </View>
         <Button style={styles.signUpButton} appearance="ghost" status="control" onPress={onSignUpButtonPress}>
-          Don't have an account? Sign Up
+          Change phone number
         </Button>
       </ImageOverlay>
     </KeyboardAvoidingView>
@@ -171,42 +139,40 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   headerContainer: {
-    minHeight: 216,
+    minHeight: 100,
     justifyContent: 'center',
     alignItems: 'center',
   },
   formContainer: {
     flex: 1,
     paddingHorizontal: 16,
+    alignItems: 'center',
   },
   signInLabel: {
-    marginTop: 16,
-  },
-  passwordInput: {
-    marginTop: 16,
+    marginBottom: 30,
   },
   signInButton: {
     marginHorizontal: 16,
   },
-  forgotPasswordContainer: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-  },
-  forgotPasswordButton: {
-    paddingHorizontal: 0,
-  },
   signUpButton: {
     marginVertical: 12,
   },
-  socialAuthContainer: {
-    marginTop: 32,
+  codeFieldRoot: {
+    width: '80%',
   },
-  socialAuthButtonsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-evenly',
+  cell: {
+    width: 40,
+    height: 40,
+    lineHeight: 38,
+    fontSize: 24,
+    borderWidth: 1,
+    borderRadius: 10,
+    borderColor: '#999',
+    textAlign: 'center',
+    marginHorizontal: 2,
+    color: 'white',
   },
-  socialAuthHintText: {
-    alignSelf: 'center',
-    marginBottom: 16,
+  focusCell: {
+    borderColor: 'white',
   },
 });
