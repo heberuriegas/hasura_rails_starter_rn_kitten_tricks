@@ -114,10 +114,6 @@ export const AuthProvider: React.FC = ({ children }) => {
       },
     );
 
-    toast.show(
-      'Please confirm your email address by clicking on the link in the confirmation email sent to your account.',
-    );
-
     return response.data;
   };
 

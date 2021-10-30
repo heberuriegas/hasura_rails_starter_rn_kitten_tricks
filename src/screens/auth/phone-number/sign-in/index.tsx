@@ -38,7 +38,7 @@ export default ({ route, navigation }): React.ReactElement => {
     Keyboard.dismiss();
   };
 
-  const sendOtpWithValidationHash = useCallback(async via => {
+  const sendOtpWithValidationHash = async via => {
     let validationHash = null;
     if (Platform.OS === 'android') {
       validationHash = await AsyncStorage.getItem('validationHash');
@@ -49,7 +49,12 @@ export default ({ route, navigation }): React.ReactElement => {
     }
     sendOtp({ phoneNumber, via, validationHash });
     setRestartListener(listener => !listener);
-  }, []);
+    toast.show(
+      via === 'whatsapp'
+        ? 'Please confirm the code sent to your whatsapp account.'
+        : 'Please confirm the code sent to your phone number by sms.',
+    );
+  };
 
   useEffect(() => {
     if (value && value.length === 6) {
