@@ -4,6 +4,6 @@ query me {
     username
     name
     email
-    phone_number
+    phoneNumber: phone_number
   }
 }

@@ -29,9 +29,9 @@ const createApolloClient = async () => {
 
     // To retry on network errors, we recommend the RetryLink
     // instead of the onError link. This just logs the error.
-    if (networkError) {
-      // console.log(`[Network error]: ${networkError}`);
-    }
+    // if (networkError) {
+    //   console.log(`[Network error]: ${networkError}`);
+    // }
   });
 
   const authLink = setContext(async (_, { headers, response }) => {
@@ -53,7 +53,7 @@ const createApolloClient = async () => {
       }
     }
 
-    const _headers = {
+    const nextContext = {
       headers: Object.assign(
         {
           ...headers,
@@ -66,7 +66,7 @@ const createApolloClient = async () => {
       ),
     };
 
-    return _headers;
+    return nextContext;
   });
 
   const httpLink = createHttpLink({
