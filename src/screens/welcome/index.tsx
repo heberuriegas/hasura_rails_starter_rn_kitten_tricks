@@ -1,12 +1,50 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../hooks/use-auth';
 import { View, StyleSheet } from 'react-native';
-import { Text, Button, Spinner } from '@ui-kitten/components';
+import { Text, Button, Spinner, StyleService } from '@ui-kitten/components';
+import { PlusIcon } from './extra/icons';
+import { ProfileAvatar } from './extra/profile-avatar.component';
+import { launchImageLibrary } from 'react-native-image-picker';
+import { useDirectUpload } from 'react-native-activestorage';
+import { onError } from 'apollo-link-error';
+
+const onSuccess = ({ signedIds }) => {
+  // Do something;
+  console.log({ signedIds });
+};
 
 const Welcome = () => {
   const [isLoading, setIsLoading] = useState<boolean>();
 
   const { currentUser, signOut } = useAuth();
+  const { upload, uploading, uploads } = useDirectUpload({ onSuccess });
+
+  const onUploadButtonClick = () => {
+    launchImageLibrary(
+      {
+        mediaType: 'photo',
+        selectionLimit: 1,
+      },
+      async response => {
+        const files = response.assets.map(file => ({
+          name: file.fileName,
+          size: file.fileSize,
+          type: file.type,
+          path: file.uri,
+        }));
+        console.log({ files });
+
+        const { signedIds } = await upload(files);
+        console.log({ signedIds });
+      },
+    );
+
+    // Assign signed IDs
+  };
+
+  const renderPhotoButton = (): React.ReactElement => (
+    <Button style={styles.editAvatarButton} size="small" accessoryRight={PlusIcon} onPress={onUploadButtonClick} />
+  );
 
   const onPressSignUp = () => {
     try {
@@ -22,6 +60,15 @@ const Welcome = () => {
       <Text category="h2" style={styles.header}>
         Welcome {currentUser?.email || currentUser?.phoneNumber}!
       </Text>
+      <ProfileAvatar
+        style={styles.profileAvatar}
+        resizeMode="center"
+        source={require('./assets/image-person.png')}
+        editButton={renderPhotoButton}
+      />
+      {uploads.map((_upload, i) => (
+        <Text key={i}>{_upload.file.name}</Text>
+      ))}
       <Button disabled={isLoading} accessoryLeft={isLoading && (() => <Spinner />)} onPress={onPressSignUp}>
         Cerrar sesión
       </Button>
@@ -40,6 +87,19 @@ const styles = StyleSheet.create({
   header: {
     marginVertical: 5,
     textAlign: 'center',
+  },
+  profileAvatar: {
+    width: 92,
+    height: 92,
+    borderRadius: 46,
+    alignSelf: 'center',
+    backgroundColor: '#fff',
+    tintColor: '#ccc',
+  },
+  editAvatarButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
   },
 });
 
