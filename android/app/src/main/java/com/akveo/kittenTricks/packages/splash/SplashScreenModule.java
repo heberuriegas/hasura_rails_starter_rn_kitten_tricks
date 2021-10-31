@@ -1,10 +1,10 @@
-package com.disciplind.app.packages.splash;
+package com.akveo.kittenTricks.packages.splash;
 
 import android.os.Handler;
 
 import androidx.annotation.Nullable;
 
-import com.disciplind.app.packages.splash.animations.SplashAnimator;
+import com.akveo.kittenTricks.packages.splash.animations.SplashAnimator;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;

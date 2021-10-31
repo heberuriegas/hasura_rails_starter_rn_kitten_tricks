@@ -1,4 +1,4 @@
-package com.disciplind.app;
+package com.akveo.kittenTricks;
 
 import android.content.Context;
 import android.content.Intent;
@@ -8,7 +8,7 @@ import com.facebook.react.ReactActivity;
 import com.facebook.react.ReactActivityDelegate;
 import com.facebook.react.ReactRootView;
 import com.swmansion.gesturehandler.react.RNGestureHandlerEnabledRootView;
-import com.disciplind.app.packages.splash.SplashScreen;
+import com.akveo.kittenTricks.packages.splash.SplashScreen;
 
 public class MainActivity extends ReactActivity {
 

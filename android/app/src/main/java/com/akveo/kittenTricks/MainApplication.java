@@ -1,4 +1,4 @@
-package com.disciplind.app;
+package com.akveo.kittenTricks;
 
 import android.app.Application;
 import android.content.Context;
@@ -7,7 +7,7 @@ import com.facebook.react.ReactApplication;
 import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;
 import com.facebook.soloader.SoLoader;
-import com.disciplind.app.packages.splash.SplashScreenPackage;
+import com.akveo.kittenTricks.packages.splash.SplashScreenPackage;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 

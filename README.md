@@ -63,7 +63,7 @@ We're always happy to receive your feedback!
 [link:doc-ui-kitten]: https://akveo.github.io/react-native-ui-kitten?utm_campaign=ui_kitten%20-%20home%20-%20kitten_tricks%20github%20readme&utm_source=kitten_tricks&utm_medium=referral&utm_content=github_readme_kitten_tricks
 [link:ui-kitten]: https://github.com/akveo/react-native-ui-kitten
 [link:app-store]: https://itunes.apple.com/us/app/kitten-tricks/id1246143230
-[link:google-play]: https://play.google.com/store/apps/details?id=com.disciplind.app
+[link:google-play]: https://play.google.com/store/apps/details?id=com.akveo.kittenTricks
 [link:eva-icons]: https://github.com/akveo/eva-icons
 [link:akveo-homepage]: https://www.akveo.com?utm_campaign=services%20-%20homepage%20-%20kitten_tricks%20github%20readme&utm_source=kitten_tricks&utm_medium=referral&utm_content=github_readme_kitten_tricks
 [link:akveo-medium]: https://medium.com/akveo-engineering

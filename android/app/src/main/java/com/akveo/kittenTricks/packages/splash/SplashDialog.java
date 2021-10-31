@@ -1,4 +1,4 @@
-package com.disciplind.app.packages.splash;
+package com.akveo.kittenTricks.packages.splash;
 
 import android.app.Dialog;
 import android.content.Context;
@@ -6,7 +6,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 
-import com.disciplind.app.R;
+import com.akveo.kittenTricks.R;
 
 public class SplashDialog extends Dialog {
 

@@ -1,4 +1,4 @@
-package com.disciplind.app;
+package com.akveo.kittenTricks;
 
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
