@@ -12,8 +12,10 @@ import { AppStorage } from '../services/app-storage.service';
 import { Mapping, Theme, Theming } from '../services/theme.service';
 import { AuthProvider } from '../context/auth/auth.context';
 import { ApolloProvider, ApolloClient, NormalizedCacheObject } from '@apollo/client';
+import { ActiveStorageProvider } from 'react-native-activestorage';
 import { getApolloClient } from '../clients/apollo';
 import { ToastProvider } from 'react-native-toast-notifications';
+import { AUTH_URL } from '@env';
 
 const loadingTasks: Task[] = [
   () =>
@@ -39,6 +41,7 @@ const App: React.FC<{ mapping: Mapping; theme: Theme; apolloClient: ApolloClient
   const [mappingContext, currentMapping] = Theming.useMapping(appMappings, mapping);
   const [themeContext, currentTheme] = Theming.useTheming(appThemes, mapping, theme);
 
+  console.log({ AUTH_URL });
   return (
     <React.Fragment>
       <IconRegistry icons={[EvaIconsPack]} />
@@ -47,14 +50,16 @@ const App: React.FC<{ mapping: Mapping; theme: Theme; apolloClient: ApolloClient
           <Theming.MappingContext.Provider value={mappingContext}>
             <Theming.ThemeContext.Provider value={themeContext}>
               <ApolloProvider client={apolloClient}>
-                <SafeAreaProvider>
-                  <ToastProvider>
-                    <AuthProvider>
-                      <StatusBar />
-                      <AppNavigator />
-                    </AuthProvider>
-                  </ToastProvider>
-                </SafeAreaProvider>
+                <ActiveStorageProvider host={AUTH_URL}>
+                  <SafeAreaProvider>
+                    <ToastProvider>
+                      <AuthProvider>
+                        <StatusBar />
+                        <AppNavigator />
+                      </AuthProvider>
+                    </ToastProvider>
+                  </SafeAreaProvider>
+                </ActiveStorageProvider>
               </ApolloProvider>
             </Theming.ThemeContext.Provider>
           </Theming.MappingContext.Provider>
