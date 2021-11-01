@@ -13900,10 +13900,9 @@ react-is@^17.0.1:
   resolved "https://registry.yarnpkg.com/react-is/-/react-is-17.0.1.tgz#5b3531bd76a645a4c9fb6e693ed36419e3301339"
   integrity sha512-NAnt2iGDXohE5LI7uBnLnqvLQMtzhkiAOLXTmv+qnF9Ky7xAPcX8Up/xWIhxvLVGJvuLiNc4xQLtuqDRzb4fSA==
 
-react-native-activestorage@^1.0.0:
+"react-native-activestorage@https://github.com/woohoou/react-native-activestorage.git":
   version "1.0.0"
-  resolved "https://registry.yarnpkg.com/react-native-activestorage/-/react-native-activestorage-1.0.0.tgz#f871e35e4a403ea0ec2a9754ecb84a7d1812ef62"
-  integrity sha512-L7S+LEYj0ZiWVaJOHADSd8xf/Z9YyBblf+PrzvfJurksxc3cH/1dg9TESf0CmZtC5Y9NM+zGd/tFgReyvKHnmQ==
+  resolved "https://github.com/woohoou/react-native-activestorage.git#743f09e0c0f2e209253187aa1b0f345ab806a208"
   dependencies:
     abab "^2.0.5"
 

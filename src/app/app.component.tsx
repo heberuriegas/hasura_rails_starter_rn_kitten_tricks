@@ -41,7 +41,6 @@ const App: React.FC<{ mapping: Mapping; theme: Theme; apolloClient: ApolloClient
   const [mappingContext, currentMapping] = Theming.useMapping(appMappings, mapping);
   const [themeContext, currentTheme] = Theming.useTheming(appThemes, mapping, theme);
 
-  console.log({ AUTH_URL });
   return (
     <React.Fragment>
       <IconRegistry icons={[EvaIconsPack]} />
@@ -50,16 +49,14 @@ const App: React.FC<{ mapping: Mapping; theme: Theme; apolloClient: ApolloClient
           <Theming.MappingContext.Provider value={mappingContext}>
             <Theming.ThemeContext.Provider value={themeContext}>
               <ApolloProvider client={apolloClient}>
-                <ActiveStorageProvider host={AUTH_URL}>
-                  <SafeAreaProvider>
-                    <ToastProvider>
-                      <AuthProvider>
-                        <StatusBar />
-                        <AppNavigator />
-                      </AuthProvider>
-                    </ToastProvider>
-                  </SafeAreaProvider>
-                </ActiveStorageProvider>
+                <SafeAreaProvider>
+                  <ToastProvider>
+                    <AuthProvider>
+                      <StatusBar />
+                      <AppNavigator />
+                    </AuthProvider>
+                  </ToastProvider>
+                </SafeAreaProvider>
               </ApolloProvider>
             </Theming.ThemeContext.Provider>
           </Theming.MappingContext.Provider>

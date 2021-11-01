@@ -174,13 +174,16 @@ export const AuthProvider: React.FC = ({ children }) => {
 
   // Remove data from context, so the App can be notified and send the user to the AuthStack
   const signOut: SignOut = async () => {
-    const token = JSON.parse(await AsyncStorage.getItem('credentials'));
+    const credentialsString = await AsyncStorage.getItem('credentials');
+    if (credentialsString) {
+      const token = JSON.parse(credentialsString);
+      await authAxios.post('/oauth/revoke', {
+        clientId: AUTH_CLIENT_ID,
+        token,
+      });
+    }
     await AsyncStorage.removeItem('credentials');
     setCurrentUser(null);
-    await authAxios.post('/oauth/revoke', {
-      clientId: AUTH_CLIENT_ID,
-      token,
-    });
   };
 
   const update = async (userData: User) => {

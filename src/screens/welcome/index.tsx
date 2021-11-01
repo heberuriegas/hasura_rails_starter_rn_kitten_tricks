@@ -6,18 +6,22 @@ import { PlusIcon } from './extra/icons';
 import { ProfileAvatar } from './extra/profile-avatar.component';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { useDirectUpload } from 'react-native-activestorage';
-import { onError } from 'apollo-link-error';
 
 const onSuccess = ({ signedIds }) => {
   // Do something;
-  console.log({ signedIds });
+  // console.log({ signedIds });
+};
+
+const onError = error => {
+  // Do something;
+  // console.error('myError', error);
 };
 
 const Welcome = () => {
   const [isLoading, setIsLoading] = useState<boolean>();
 
   const { currentUser, signOut } = useAuth();
-  const { upload, uploading, uploads } = useDirectUpload({ onSuccess });
+  const { upload, uploading, uploads } = useDirectUpload({ onSuccess, onError });
 
   const onUploadButtonClick = () => {
     launchImageLibrary(
@@ -30,12 +34,10 @@ const Welcome = () => {
           name: file.fileName,
           size: file.fileSize,
           type: file.type,
-          path: file.uri,
+          path: file.uri.replace('file://', ''),
         }));
-        console.log({ files });
 
         const { signedIds } = await upload(files);
-        console.log({ signedIds });
       },
     );
 

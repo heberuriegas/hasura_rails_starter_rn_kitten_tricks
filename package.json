@@ -69,7 +69,7 @@
     "react": "16.13.1",
     "react-dom": "16.13.1",
     "react-native": "~0.64.0",
-    "react-native-activestorage": "^1.0.0",
+    "react-native-activestorage": "https://github.com/woohoou/react-native-activestorage.git",
     "react-native-app-auth": "^6.4.0",
     "react-native-appearance": "~0.3.3",
     "react-native-config": "^1.4.2",
