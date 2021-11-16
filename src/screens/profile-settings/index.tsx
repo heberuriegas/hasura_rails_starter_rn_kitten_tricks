@@ -39,7 +39,7 @@ export default ({ navigation }): React.ReactElement => {
     },
     validationSchema,
     onSubmit: async (_values, { setErrors, resetForm }) => {
-      console.log({ _values });
+      // console.log({ _values });
 
       navigation && navigation.goBack();
     },
@@ -76,8 +76,8 @@ export default ({ navigation }): React.ReactElement => {
         mediaType: 'photo',
         selectionLimit: 1,
       },
-      async response => {
-        const files = response.assets.map(file => ({
+      async _response => {
+        const files = _response.assets.map(file => ({
           name: file.fileName,
           size: file.fileSize,
           type: file.type,
