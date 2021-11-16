@@ -78,6 +78,7 @@ export type SignOut = () => Promise<void>;
 
 export interface AuthContextData {
   currentUser: User;
+  refreshUser: () => void;
   setCurrentUser: (User) => void;
   isSignedIn: boolean;
   userLoading: boolean;

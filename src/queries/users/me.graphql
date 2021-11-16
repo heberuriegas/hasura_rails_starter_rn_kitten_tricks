@@ -5,5 +5,6 @@ query me {
     name
     email
     phoneNumber: phone_number
+    avatarThumbnailUrl: avatar_thumbnail_url
   }
 }

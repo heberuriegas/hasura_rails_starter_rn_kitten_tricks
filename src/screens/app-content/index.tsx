@@ -4,6 +4,7 @@ import { OAuthCredentials } from '../../../types/credentials';
 import { AUTH_URL } from '@env';
 import { ActiveStorageProvider } from 'react-native-activestorage';
 import Welcome from 'src/screens/welcome';
+import { HomeNavigator } from '../../navigation/home.navigator';
 
 const AppContent = () => {
   const [activeStorageHeaders, setActiveStorageHeaders] = useState<{ [key: string]: string }>();
@@ -20,7 +21,7 @@ const AppContent = () => {
 
   return (
     <ActiveStorageProvider host={AUTH_URL} mountPath="/api" headers={activeStorageHeaders}>
-      <Welcome />
+      <HomeNavigator />
     </ActiveStorageProvider>
   );
 };

@@ -7,7 +7,6 @@ export interface ProfileAvatarProps extends AvatarProps {
 }
 
 export const ProfileAvatar = (props: ProfileAvatarProps): React.ReactElement<ViewProps> => {
-
   const renderEditButtonElement = (): ButtonElement => {
     const buttonElement: React.ReactElement<ButtonProps> = props.editButton();
 
@@ -20,10 +19,7 @@ export const ProfileAvatar = (props: ProfileAvatarProps): React.ReactElement<Vie
 
   return (
     <View style={style}>
-      <Avatar
-        style={[style, styles.avatar]}
-        {...restProps}
-      />
+      <Avatar style={[style, styles.avatar]} {...restProps} />
       {editButton && renderEditButtonElement()}
     </View>
   );
@@ -39,4 +35,3 @@ const styles = StyleSheet.create({
     bottom: 0,
   },
 });
-

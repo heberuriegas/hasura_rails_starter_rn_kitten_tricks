@@ -1,0 +1,5 @@
+mutation CreateAttachment($signedId: String!, $relatedId: Int!, $relatedType: String!, $attribute: String!) {
+  createAttachment(
+    input: { relatedId: $relatedId, relatedType: $relatedType, attribute: $attribute, signedId: $signedId }
+  )
+}

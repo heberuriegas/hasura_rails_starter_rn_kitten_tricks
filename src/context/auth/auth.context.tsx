@@ -4,7 +4,7 @@ import meQuery from '../../queries/users/me.graphql';
 // import updateCurrentUserQuery from '../../queries/graphql/users/updateUser.graphql';
 import { EventRegister } from 'react-native-event-listeners';
 import { AUTH_CLIENT_ID } from '@env';
-import { useLazyQuery } from '@apollo/client';
+import { useLazyQuery, useMutation } from '@apollo/client';
 import { authAxios } from '../../clients/axios';
 import {
   AuthContextData,
@@ -47,19 +47,22 @@ export const AuthProvider: React.FC = ({ children }) => {
     { me: User },
     void
   >(meQuery, {
-    context: { clientName: 'V2' },
     fetchPolicy: 'network-only',
   });
 
+  const refreshUser = () => {
+    AsyncStorage.getItem('credentials').then(credentials => {
+      if (credentials) {
+        getCurrentUser();
+      } else {
+        setSetupIsLoading(false);
+      }
+    });
+  };
+
   useEffect(() => {
     try {
-      AsyncStorage.getItem('credentials').then(credentials => {
-        if (credentials) {
-          getCurrentUser();
-        } else {
-          setSetupIsLoading(false);
-        }
-      });
+      refreshUser();
     } catch (err) {
       setCurrentUser(undefined);
     }
@@ -207,6 +210,7 @@ export const AuthProvider: React.FC = ({ children }) => {
       value={{
         isSignedIn,
         currentUser,
+        refreshUser,
         setCurrentUser,
         userLoading: setupIsLoading || userLoading,
         signUpByEmail,

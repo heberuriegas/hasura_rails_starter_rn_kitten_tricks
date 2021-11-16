@@ -1,7 +1,11 @@
 export interface User {
-  email: string;
+  id: number;
   name: string;
-  username: string;
+  email: string;
+  username?: string;
   phoneNumber: string;
-  countryCode: string;
+  avatarUrl: string;
+  avatarThumbnailUrl: string;
+  createdAt: string;
+  updatedAt: string;
 }
