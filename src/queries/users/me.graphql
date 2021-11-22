@@ -1,3 +1,5 @@
+#import "./userFragment.graphql"
+
 query me {
   me {
     id
@@ -5,6 +7,6 @@ query me {
     name
     email
     phoneNumber: phone_number
-    avatarThumbnailUrl: avatar_thumbnail_url
+    avatar
   }
 }

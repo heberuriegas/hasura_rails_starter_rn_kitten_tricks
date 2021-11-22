@@ -1,0 +1,12 @@
+fragment user_fragment on users {
+  id
+  username
+  name
+  email
+  phoneNumber: phone_number
+  avatar {
+    id
+    url
+    thumbnailUrl
+  }
+}

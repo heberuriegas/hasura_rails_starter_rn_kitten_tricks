@@ -53,8 +53,8 @@ export const HomeDrawer = ({ navigation }): DrawerElement => {
           <Avatar
             style={styles.profileAvatar}
             source={
-              currentUser?.avatarThumbnailUrl
-                ? { uri: currentUser?.avatarThumbnailUrl }
+              currentUser?.avatar?.thumbnailUrl
+                ? { uri: currentUser?.avatar?.thumbnailUrl }
                 : require('../../assets/images/image-person.png')
             }
             ImageComponent={ImageBackground}

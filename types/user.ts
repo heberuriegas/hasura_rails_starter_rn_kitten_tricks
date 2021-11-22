@@ -1,11 +1,12 @@
+import { Attachment } from './attachment';
+
 export interface User {
   id: number;
-  name: string;
-  email: string;
+  name?: string;
+  email?: string;
   username?: string;
   phoneNumber: string;
-  avatarUrl: string;
-  avatarThumbnailUrl: string;
+  avatar?: Attachment;
   createdAt: string;
   updatedAt: string;
 }

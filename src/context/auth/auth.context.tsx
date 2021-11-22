@@ -24,6 +24,8 @@ import {
   SignUpByPhoneNumber,
 } from './auth.context.types';
 import { useToast } from 'react-native-toast-notifications';
+import { getApolloClient } from '../../clients/apollo';
+import { camelizeKeys } from 'humps';
 
 const AuthContext = createContext<AuthContextData>({} as AuthContextData);
 
@@ -50,19 +52,29 @@ export const AuthProvider: React.FC = ({ children }) => {
     fetchPolicy: 'network-only',
   });
 
-  const refreshUser = () => {
-    AsyncStorage.getItem('credentials').then(credentials => {
-      if (credentials) {
-        getCurrentUser();
-      } else {
-        setSetupIsLoading(false);
+  const refreshUser = async () => {
+    const credentials = await AsyncStorage.getItem('credentials');
+    const apolloClient = await getApolloClient();
+    if (credentials) {
+      const { data: userData } = await apolloClient.query<{ me: User }, void>({
+        query: meQuery,
+        fetchPolicy: 'network-only',
+      });
+      if (userData && userData.me) {
+        setCurrentUser(camelizeKeys(userData.me));
       }
-    });
+    }
   };
 
   useEffect(() => {
     try {
-      refreshUser();
+      AsyncStorage.getItem('credentials').then(credentials => {
+        if (credentials) {
+          getCurrentUser();
+        } else {
+          setSetupIsLoading(false);
+        }
+      });
     } catch (err) {
       setCurrentUser(undefined);
     }
@@ -70,7 +82,7 @@ export const AuthProvider: React.FC = ({ children }) => {
 
   useEffect(() => {
     if (me) {
-      setCurrentUser(me);
+      setCurrentUser(camelizeKeys(me));
     }
     if (me || error) {
       setSetupIsLoading(false);

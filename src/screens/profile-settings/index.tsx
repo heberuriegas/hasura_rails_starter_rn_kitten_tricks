@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { ScrollView, Image } from 'react-native';
-import { Button, StyleService, useStyleSheet, Avatar } from '@ui-kitten/components';
+import { ScrollView, View } from 'react-native';
+import { Button, StyleService, useStyleSheet } from '@ui-kitten/components';
 import { ProfileAvatar } from './extra/profile-avatar.component';
 import { ProfileSetting } from './extra/profile-setting.component';
 import { CameraIcon } from './extra/icons';
@@ -9,16 +9,18 @@ import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { User } from '../../../types/user';
 import { useAuth } from '../../hooks/use-auth';
-import { launchImageLibrary } from 'react-native-image-picker';
+import { launchImageLibrary, launchCamera } from 'react-native-image-picker';
 import { useDirectUpload } from 'react-native-activestorage';
 import CreateAttachmentQuery from '../../queries/attachments/create-attachment.graphql';
 import { useMutation } from '@apollo/client';
 import { useToast } from 'react-native-toast-notifications';
+import Loading from '../../components/loading.component';
 
-type UpdateUser = Omit<User, 'id' | 'email' | 'avatarUrl' | 'avatarThumbnailUrl' | 'createdAt' | 'updatedAt'>;
+type UpdateUser = Omit<User, 'id' | 'email' | 'avatar' | 'createdAt' | 'updatedAt'>;
 
 export default ({ navigation }): React.ReactElement => {
   const [isLoading, setIsLoading] = useState<boolean>();
+  const [avatarIsLoading, setAvatarIsLoading] = useState<boolean>(false);
   const styles = useStyleSheet(themedStyle);
   const { currentUser, refreshUser } = useAuth();
   const toast = useToast();
@@ -46,21 +48,26 @@ export default ({ navigation }): React.ReactElement => {
   });
 
   const onSuccess = async ({ signedIds }) => {
-    // Do something;
+    try {
+      setAvatarIsLoading(true);
+      if (currentUser && signedIds?.[0]) {
+        await createAttachment({
+          variables: {
+            signedId: signedIds[0],
+            relatedId: Number(currentUser.id),
+            relatedType: 'User',
+            attribute: 'avatar',
+          },
+        });
 
-    if (currentUser && signedIds?.[0]) {
-      await createAttachment({
-        variables: {
-          signedId: signedIds[0],
-          relatedId: Number(currentUser.id),
-          relatedType: 'User',
-          attribute: 'avatar',
-        },
-      });
-
-      await refreshUser();
-    } else {
+        await refreshUser();
+      } else {
+        throw new Error('empty signed in');
+      }
+    } catch (err) {
       toast.show('Something went wrong uploading the attachment');
+    } finally {
+      setAvatarIsLoading(false);
     }
   };
 
@@ -71,10 +78,11 @@ export default ({ navigation }): React.ReactElement => {
   const { upload, uploading, uploads } = useDirectUpload({ onSuccess, onError });
 
   const onUploadButtonClick = () => {
-    launchImageLibrary(
+    launchCamera(
       {
         mediaType: 'photo',
-        selectionLimit: 1,
+        cameraType: 'back',
+        // selectionLimit: 1,
       },
       async _response => {
         const files = _response.assets.map(file => ({
@@ -98,14 +106,20 @@ export default ({ navigation }): React.ReactElement => {
   return (
     <SafeAreaContainer navigation={navigation}>
       <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-        <ProfileAvatar
-          source={
-            currentUser?.avatarThumbnailUrl
-              ? { uri: currentUser.avatarThumbnailUrl }
-              : require('../../assets/images/image-person.png')
-          }
-          editButton={renderPhotoButton}
-        />
+        <View style={styles.avatarContainer}>
+          {avatarIsLoading ? (
+            <Loading />
+          ) : (
+            <ProfileAvatar
+              source={
+                currentUser?.avatar?.thumbnailUrl
+                  ? { uri: currentUser.avatar?.thumbnailUrl }
+                  : require('../../assets/images/image-person.png')
+              }
+              editButton={renderPhotoButton}
+            />
+          )}
+        </View>
         <ProfileSetting
           style={[styles.profileSetting, styles.section]}
           hint="Name"
@@ -169,6 +183,9 @@ const themedStyle = StyleService.create({
   container: {
     flex: 1,
     backgroundColor: 'background-basic-color-2',
+  },
+  avatarContainer: {
+    height: 120,
   },
   contentContainer: {
     paddingVertical: 24,
