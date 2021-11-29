@@ -137,7 +137,7 @@ export default ({ route, navigation }): React.ReactElement => {
           disabled={signInIsLoading}
           accessoryLeft={signInIsLoading ? () => <Spinner /> : null}
         >
-          Confirm code
+          CONFIRM CODE
         </Button>
         <Button style={styles.signUpButton} appearance="ghost" status="control" onPress={onSignUpButtonPress}>
           Change phone number

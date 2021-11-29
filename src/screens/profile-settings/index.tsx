@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
 import { ScrollView, View } from 'react-native';
-import { Button, StyleService, useStyleSheet } from '@ui-kitten/components';
+import { Button, StyleService, useStyleSheet, Spinner } from '@ui-kitten/components';
 import { ProfileAvatar } from './extra/profile-avatar.component';
 import { ProfileSetting } from './extra/profile-setting.component';
 import { CameraIcon } from './extra/icons';
 import SafeAreaContainer from 'src/components/safe-area-container.component';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import { User } from '../../../types/user';
 import { useAuth } from '../../hooks/use-auth';
 import { launchImageLibrary, launchCamera } from 'react-native-image-picker';
 import { useDirectUpload } from 'react-native-activestorage';
@@ -15,14 +14,13 @@ import CreateAttachmentQuery from '../../queries/attachments/create-attachment.g
 import { useMutation } from '@apollo/client';
 import { useToast } from 'react-native-toast-notifications';
 import Loading from '../../components/loading.component';
-
-type UpdateUser = Omit<User, 'id' | 'email' | 'avatar' | 'createdAt' | 'updatedAt'>;
+import { UpdateUserParams } from '../../context/auth/auth.context.types';
 
 export default ({ navigation }): React.ReactElement => {
   const [isLoading, setIsLoading] = useState<boolean>();
   const [avatarIsLoading, setAvatarIsLoading] = useState<boolean>(false);
   const styles = useStyleSheet(themedStyle);
-  const { currentUser, refreshUser } = useAuth();
+  const { currentUser, refreshUser, updateUser } = useAuth();
   const toast = useToast();
 
   const [createAttachment, response] = useMutation(CreateAttachmentQuery);
@@ -30,20 +28,27 @@ export default ({ navigation }): React.ReactElement => {
   const validationSchema = Yup.object({
     name: Yup.string().min(3).max(50),
     // email: Yup.string().email(),
-    phoneNumber: Yup.string().phone().required('Required'),
+    // phoneNumber: Yup.string().phone().required('Required'),
   });
 
-  const { values, touched, errors, submitForm, handleChange, handleBlur } = useFormik<UpdateUser>({
+  const { values, touched, errors, submitForm, handleChange, handleBlur } = useFormik<UpdateUserParams>({
     initialValues: {
       name: currentUser?.name || '',
       // email: currentUser?.email || '',
-      phoneNumber: currentUser?.phoneNumber || '',
+      // phoneNumber: currentUser?.phoneNumber || '',
     },
     validationSchema,
-    onSubmit: async (_values, { setErrors, resetForm }) => {
-      // console.log({ _values });
-
-      navigation && navigation.goBack();
+    onSubmit: async _values => {
+      try {
+        setIsLoading(true);
+        await updateUser(_values);
+        toast.show('Your information has been sucessfully updated');
+      } catch (err) {
+        toast.show('Something went wrong uploading the attachment', { type: 'danger' });
+        console.error(err.message);
+      } finally {
+        setIsLoading(false);
+      }
     },
   });
 
@@ -65,7 +70,7 @@ export default ({ navigation }): React.ReactElement => {
         throw new Error('empty signed in');
       }
     } catch (err) {
-      toast.show('Something went wrong uploading the attachment');
+      toast.show('Something went wrong uploading the attachment', { type: 'danger' });
     } finally {
       setAvatarIsLoading(false);
     }
@@ -78,11 +83,11 @@ export default ({ navigation }): React.ReactElement => {
   const { upload, uploading, uploads } = useDirectUpload({ onSuccess, onError });
 
   const onUploadButtonClick = () => {
-    launchCamera(
+    launchImageLibrary(
       {
         mediaType: 'photo',
-        cameraType: 'back',
-        // selectionLimit: 1,
+        // cameraType: 'back',
+        selectionLimit: 1,
       },
       async _response => {
         const files = _response.assets.map(file => ({
@@ -166,13 +171,16 @@ export default ({ navigation }): React.ReactElement => {
           hint="Phone Number"
           editable={false}
           inputProps={{
-            onChangeText: handleChange('phoneNumber'),
-            onBlur: handleBlur('phoneNumber'),
-            value: values.phoneNumber,
+            value: currentUser?.phoneNumber,
           }}
         />
-        <Button style={styles.doneButton} onPress={submitForm}>
-          DONE
+        <Button
+          style={styles.doneButton}
+          onPress={submitForm}
+          disabled={isLoading}
+          accessoryLeft={isLoading && (() => <Spinner />)}
+        >
+          UPDATE
         </Button>
       </ScrollView>
     </SafeAreaContainer>

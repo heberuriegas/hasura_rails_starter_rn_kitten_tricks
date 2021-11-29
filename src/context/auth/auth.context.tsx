@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import React, { useEffect, useState, createContext } from 'react';
+import React, { useEffect, useState, useCallback, createContext } from 'react';
 import meQuery from '../../queries/users/me.graphql';
-// import updateCurrentUserQuery from '../../queries/graphql/users/updateUser.graphql';
+import updateCurrentUserQuery from '../../queries/users/update.graphql';
 import { EventRegister } from 'react-native-event-listeners';
 import { AUTH_CLIENT_ID } from '@env';
 import { useLazyQuery, useMutation } from '@apollo/client';
@@ -22,19 +22,30 @@ import {
   ForgotPasswordData,
   SignInByOAuth2,
   SignUpByPhoneNumber,
+  UpdateUser,
 } from './auth.context.types';
 import { useToast } from 'react-native-toast-notifications';
 import { getApolloClient } from '../../clients/apollo';
 import { camelizeKeys } from 'humps';
+import { UpdateUserParams } from './auth.context.types';
 
 const AuthContext = createContext<AuthContextData>({} as AuthContextData);
 
 export const AuthProvider: React.FC = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User>();
+  const [displayName, setDisplayName] = useState<string>('');
   const [isSignedIn, setIsSignedIn] = useState<boolean>();
   const [setupIsLoading, setSetupIsLoading] = useState(true);
 
   const toast = useToast();
+
+  useEffect(() => {
+    if (currentUser) {
+      setDisplayName(currentUser.name || currentUser.username || currentUser.email || currentUser.phoneNumber);
+    } else {
+      setDisplayName('');
+    }
+  }, [currentUser]);
 
   useEffect(() => {
     const listener = EventRegister.addEventListener('unauthenticate', () => {
@@ -201,19 +212,25 @@ export const AuthProvider: React.FC = ({ children }) => {
     setCurrentUser(null);
   };
 
-  const update = async (userData: User) => {
-    // // Remove data from context, so the App can be notified
-    // // and send the user to the AuthStack
-    // const {
-    //   data: { update_users_by_pk: user },
-    // } = await updateCurrentUser({
-    //   variables: {
-    //     id: currentUser.id,
-    //     user: userData,
-    //   },
-    // });
-    // setCurrentUser(user);
-  };
+  const updateUser: UpdateUser = useCallback(
+    async userData => {
+      const apolloClient = await getApolloClient();
+      const result = await apolloClient.mutate<
+        { update_users_by_pk: User },
+        { pk_columns: { id: Number }; _set: UpdateUserParams }
+      >({
+        mutation: updateCurrentUserQuery,
+        variables: {
+          pk_columns: { id: currentUser.id },
+          _set: userData,
+        },
+      });
+      const user = result.data.update_users_by_pk;
+      setCurrentUser(user);
+      return user;
+    },
+    [currentUser],
+  );
 
   return (
     // This component will be used to encapsulate the whole App,
@@ -222,6 +239,7 @@ export const AuthProvider: React.FC = ({ children }) => {
       value={{
         isSignedIn,
         currentUser,
+        displayName,
         refreshUser,
         setCurrentUser,
         userLoading: setupIsLoading || userLoading,
@@ -234,7 +252,7 @@ export const AuthProvider: React.FC = ({ children }) => {
         signInByAssertion,
         signInByOAuth2,
         signOut,
-        update,
+        updateUser,
       }}
     >
       {children}

@@ -5,18 +5,7 @@ import { Text, Button, Spinner } from '@ui-kitten/components';
 import SafeAreaContainer from '../../components/safe-area-container.component';
 
 export const Welcome = ({ navigation }) => {
-  const [isLoading, setIsLoading] = useState<boolean>();
-
-  const { currentUser, signOut } = useAuth();
-
-  const onPressSignOut = () => {
-    try {
-      setIsLoading(true);
-      signOut();
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const { currentUser } = useAuth();
 
   return (
     <SafeAreaContainer navigation={navigation}>
@@ -24,9 +13,6 @@ export const Welcome = ({ navigation }) => {
         <Text category="h2" style={styles.header}>
           Welcome {currentUser?.email || currentUser?.phoneNumber}!
         </Text>
-        <Button disabled={isLoading} accessoryLeft={isLoading && (() => <Spinner />)} onPress={onPressSignOut}>
-          Cerrar sesión
-        </Button>
       </View>
     </SafeAreaContainer>
   );

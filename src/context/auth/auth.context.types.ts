@@ -76,8 +76,13 @@ export type SignInByOAuth2 = (authState: AuthorizeResult) => Promise<void>;
 
 export type SignOut = () => Promise<void>;
 
+export type UpdateUserParams = Omit<User, 'id' | 'phoneNumber' | 'email' | 'avatar' | 'createdAt' | 'updatedAt'>;
+
+export type UpdateUser = (user: UpdateUserParams) => Promise<User>;
+
 export interface AuthContextData {
   currentUser: User;
+  displayName: string;
   refreshUser: () => void;
   setCurrentUser: (User) => void;
   isSignedIn: boolean;
@@ -89,7 +94,7 @@ export interface AuthContextData {
   signInByPhoneNumber: SignInByPhoneNumber;
   signInByAssertion: SignInByAssertion;
   signInByOAuth2: SignInByOAuth2;
-  update(User): Promise<void>;
+  updateUser: UpdateUser;
   signOut: SignOut;
   sendOtp: SendOtp;
 }

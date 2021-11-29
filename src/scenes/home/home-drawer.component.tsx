@@ -1,5 +1,12 @@
 import React, { ReactElement, useState } from 'react';
-import { StyleSheet, View, ImageBackground } from 'react-native';
+import {
+  StyleSheet,
+  View,
+  ImageBackground,
+  TouchableWithoutFeedback,
+  ImageStyle,
+  TouchableOpacity,
+} from 'react-native';
 import {
   Avatar,
   Divider,
@@ -10,6 +17,10 @@ import {
   Text,
   IndexPath,
   Button,
+  Spinner,
+  Icon,
+  IconElement,
+  StyleType,
 } from '@ui-kitten/components';
 import { BookIcon, GithubIcon } from '../../components/icons';
 import { SafeAreaLayout } from '../../components/safe-area-layout.component';
@@ -19,9 +30,21 @@ import { useAuth } from '../../hooks/use-auth';
 
 const version: string = AppInfoService.getVersion();
 
+const EditIcon = (style: StyleType): IconElement => <Icon {...style} name="edit-outline" fill="#666"></Icon>;
+
 export const HomeDrawer = ({ navigation }): DrawerElement => {
   const [selectedIndex, setSelectedIndex] = useState<IndexPath>(null);
-  const { currentUser } = useAuth();
+  const [isLoading, setIsLoading] = useState<boolean>();
+  const { currentUser, displayName, signOut } = useAuth();
+
+  const onPressSignOut = () => {
+    try {
+      setIsLoading(true);
+      signOut();
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const DATA = [
     {
@@ -49,25 +72,25 @@ export const HomeDrawer = ({ navigation }): DrawerElement => {
   const renderHeader = (): ReactElement => (
     <SafeAreaLayout insets="top" level="2">
       <Layout style={styles.header} level="2">
-        <View style={styles.profileContainer}>
-          <Avatar
-            style={styles.profileAvatar}
-            source={
-              currentUser?.avatar?.thumbnailUrl
-                ? { uri: currentUser?.avatar?.thumbnailUrl }
-                : require('../../assets/images/image-person.png')
-            }
-            ImageComponent={ImageBackground}
-          />
-          <Text style={styles.profileName} category="h6">
-            Kitten Tricks
-          </Text>
-        </View>
-        <View>
-          <Button size="tiny" onPress={onPressEditProfile}>
-            Edit profile
-          </Button>
-        </View>
+        <TouchableOpacity onPress={onPressEditProfile}>
+          <View style={styles.profileContainer}>
+            <Avatar
+              style={styles.profileAvatar}
+              source={
+                currentUser?.avatar?.thumbnailUrl
+                  ? { uri: currentUser?.avatar?.thumbnailUrl }
+                  : require('../../assets/images/image-person.png')
+              }
+              ImageComponent={ImageBackground}
+            />
+            <Text style={styles.profileName} category="h6">
+              {displayName}
+            </Text>
+            <View>
+              <EditIcon style={{ width: 22, height: 22 }} />
+            </View>
+          </View>
+        </TouchableOpacity>
       </Layout>
     </SafeAreaLayout>
   );
@@ -77,8 +100,19 @@ export const HomeDrawer = ({ navigation }): DrawerElement => {
       <React.Fragment>
         <Divider />
         <View style={styles.footer}>
-          <Text>{`Version ${AppInfoService.getVersion()}`}</Text>
+          <Button
+            appearance="ghost"
+            disabled={isLoading}
+            accessoryLeft={isLoading && (() => <Spinner />)}
+            onPress={onPressSignOut}
+            style={{ width: '100%' }}
+          >
+            LOG OUT
+          </Button>
         </View>
+        {/* <View style={styles.footer}>
+          <Text>{`Version ${AppInfoService.getVersion()}`}</Text>
+        </View> */}
       </React.Fragment>
     </SafeAreaLayout>
   );
@@ -102,20 +136,21 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    height: 128,
+    height: 110,
     paddingHorizontal: 16,
     justifyContent: 'center',
   },
   footer: {
     flexDirection: 'row',
-    justifyContent: 'flex-start',
-    marginLeft: 16,
+    justifyContent: 'center',
   },
   profileContainer: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   profileName: {
+    maxWidth: 130,
+    flexGrow: 1,
     marginHorizontal: 16,
   },
   profileAvatar: {
@@ -123,6 +158,5 @@ const styles = StyleSheet.create({
     height: 70,
     backgroundColor: '#fff',
     tintColor: '#ccc',
-    marginBottom: 10,
   },
 });

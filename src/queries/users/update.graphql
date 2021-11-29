@@ -1,7 +1,7 @@
 #import "./userFragment.graphql"
 
-mutation updateUser($id: bigint!, $user: users_set_input) {
-  update_users_by_pk(pk_columns: { id: $id }, _set: $user) {
+mutation updateUser($pk_columns: users_pk_columns_input!, $_set: users_set_input) {
+  update_users_by_pk(pk_columns: $pk_columns, _set: $_set) {
     ...user_fragment
   }
 }
