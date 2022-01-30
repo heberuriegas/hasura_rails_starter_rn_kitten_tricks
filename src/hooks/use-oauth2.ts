@@ -15,7 +15,7 @@ const useOAuth2: UseOAuth2 = () => {
 
   const oauth2SignIn = async () => {
     const oauth2Config = {
-      redirectUrl: 'com.akveo.kittenTricks.auth://oauthredirect',
+      redirectUrl: 'com.disciplind.auth://oauthredirect',
       clientId: OAUTH2_CLIENT_ID,
       clientSecret: OAUTH2_CLIENT_SECRET,
       dangerouslyAllowInsecureHttpRequests: __DEV__,
@@ -36,7 +36,7 @@ const useOAuth2: UseOAuth2 = () => {
 
   const githubSignIn = async () => {
     const githubConfig = {
-      redirectUrl: 'com.akveo.kittenTricks.auth://oauthredirect',
+      redirectUrl: 'com.disciplind.auth://oauthredirect',
       clientId: GITHUB_CLIENT_ID,
       clientSecret: GITHUB_CLIENT_SECRET,
       scopes: ['identity', 'user', 'user:email'],
