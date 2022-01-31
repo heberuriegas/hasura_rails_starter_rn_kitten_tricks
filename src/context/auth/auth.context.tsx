@@ -1,33 +1,31 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import React, { useEffect, useState, useCallback, createContext } from 'react';
-import meQuery from '../../queries/users/me.graphql';
-import updateCurrentUserQuery from '../../queries/users/update.graphql';
-import { EventRegister } from 'react-native-event-listeners';
+import { useLazyQuery } from '@apollo/client';
 import { AUTH_CLIENT_ID } from '@env';
-import { useLazyQuery, useMutation } from '@apollo/client';
-import { authAxios } from '../../clients/axios';
-import {
-  AuthContextData,
-  SignUpData,
-  SignInByEmail,
-  SignInByPhoneNumber,
-  SignInByAssertion,
-  SignOut,
-} from './auth.context.types';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { camelizeKeys } from 'humps';
+import React, { createContext, useCallback, useEffect, useState } from 'react';
+import { EventRegister } from 'react-native-event-listeners';
+import { useToast } from 'react-native-toast-notifications';
 import { User } from 'types/user';
 import { OAuthCredentials } from '../../../types/credentials';
+import { getApolloClient } from '../../clients/apollo';
+import { authAxios } from '../../clients/axios';
+import meQuery from '../../queries/users/me.graphql';
+import updateCurrentUserQuery from '../../queries/users/update.graphql';
 import {
-  SignUpByEmail,
+  AuthContextData,
   ForgotPassword,
   ForgotPasswordData,
+  SignInByAssertion,
+  SignInByEmail,
   SignInByOAuth2,
+  SignInByPhoneNumber,
+  SignOut,
+  SignUpByEmail,
   SignUpByPhoneNumber,
+  SignUpData,
   UpdateUser,
+  UpdateUserParams,
 } from './auth.context.types';
-import { useToast } from 'react-native-toast-notifications';
-import { getApolloClient } from '../../clients/apollo';
-import { camelizeKeys } from 'humps';
-import { UpdateUserParams } from './auth.context.types';
 
 const AuthContext = createContext<AuthContextData>({} as AuthContextData);
 

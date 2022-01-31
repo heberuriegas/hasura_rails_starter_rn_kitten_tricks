@@ -1,9 +1,9 @@
-import React from 'react';
 import { DefaultTheme, NavigationContainer } from '@react-navigation/native';
-import { AuthPhoneNumberNavigator } from 'src/navigation/auth.navigator';
+import React from 'react';
+import { AuthEmailNavigator } from 'src/navigation/auth.navigator';
+import Loading from '../components/loading.component';
 import { useAuth } from '../hooks/use-auth';
 import AppContent from '../screens/app-content';
-import Loading from '../components/loading.component';
 
 /*
  * Navigation theming: https://reactnavigation.org/docs/en/next/themes.html
@@ -21,7 +21,7 @@ export const AppNavigator = (): React.ReactElement => {
   const { isSignedIn, userLoading } = useAuth();
   return (
     <NavigationContainer theme={navigatorTheme}>
-      {userLoading ? <Loading /> : isSignedIn ? <AppContent /> : <AuthPhoneNumberNavigator />}
+      {userLoading ? <Loading /> : isSignedIn ? <AppContent /> : <AuthEmailNavigator />}
     </NavigationContainer>
   );
 };

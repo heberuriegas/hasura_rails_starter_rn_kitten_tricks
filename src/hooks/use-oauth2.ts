@@ -1,7 +1,6 @@
+import { GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET, OAUTH2_CLIENT_ID, OAUTH2_CLIENT_SECRET, OAUTH2_HOST } from '@env';
 import { authorize } from 'react-native-app-auth';
 import { useAuth } from './use-auth';
-import { OAUTH2_HOST, OAUTH2_CLIENT_ID, OAUTH2_CLIENT_SECRET, GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET } from '@env';
-import { OAuthState } from '../../types/credentials';
 
 interface UseOAuth2Respnse {
   oauth2SignIn: () => void;
